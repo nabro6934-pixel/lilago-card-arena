@@ -177,11 +177,6 @@ header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius
 .sub-head p{margin:0}
 .copy-gallery{grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr))}
 .copy-tile{align-self:start}.copy-tile>small{display:block;color:#b5e2ed;padding:7px 2px}
-#deck-slots .card.deck-slot{padding:0;border-radius:9px;min-width:0}
-#deck-slots .card.deck-slot .portrait{aspect-ratio:1.4}
-#deck-slots .card.deck-slot .cardbody{gap:2px;padding:5px}
-#deck-slots .card.deck-slot .name{font-size:clamp(9px,1.2vw,13px)}
-#deck-slots .card.deck-slot .stats,#deck-slots .card.deck-slot .skill{display:none}
 .deck-empty{min-height:60px;border-style:dashed}
 .online-panel,.deck-tray,.pack-stage,.arena-shell{box-shadow:inset 0 1px #a6eefe30,0 12px 30px #00131f65}
 .sub-head.panel-market{background:linear-gradient(125deg,#132b3e,#58432f)}
@@ -194,10 +189,6 @@ header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius
 .home-play button:hover:enabled{background:#ff8290;filter:drop-shadow(0 0 10px #ff687b)}
 .home-tools button:hover,.home-tabs button:hover,.online-list li:hover{border-color:#7ef3d9;background-color:#204763}
 header[hidden]{display:none!important}
-#deck-slots .card.deck-slot .portrait{aspect-ratio:1.14}
-#deck-slots .card.deck-slot .cardbody{gap:5px;padding:9px}
-#deck-slots .card.deck-slot .name{font-size:inherit}
-#deck-slots .card.deck-slot .stats,#deck-slots .card.deck-slot .skill{display:block}
 
 </style></head>
 <body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button></nav></header>
@@ -297,7 +288,7 @@ function updateHeader(){
   document.querySelector('#coins').textContent=`◈ ${(onlineProfile?.coins??profile.coins).toLocaleString()} 코인`;
   document.querySelectorAll('[data-tab]').forEach(b=>{b.toggleAttribute('aria-current',b.dataset.tab===tab&&(!b.dataset.panel||b.dataset.panel===onlinePanel));});
 }
-function render(){document.querySelector('header').hidden=tab==='battle'&&!!match;updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured,matching:renderMatching})[tab]();}
+function render(){document.querySelector('header').hidden=tab==='matching'||(tab==='battle'&&!!match);updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured,matching:renderMatching})[tab]();}
 const seal='<span class="brand-seal" aria-hidden="true">◇</span><b>릴라고<br>카드 아레나</b>';
 let audio=null,soundOn=false;
 try{soundOn=localStorage.getItem('lilago-card-audio')==='on';}catch{}
@@ -369,7 +360,7 @@ function collectionGrid(){
   }).join('')||'<p>해당하는 카드가 없어.</p>';
   document.querySelector('#deck-slots').innerHTML=Array.from({length:6},(_,i)=>draft[i]===undefined
     ? `<button class="btn deck-slot deck-empty" disabled><span>${i+1}</span>빈 슬롯</button>`
-    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,extra:'deck-slot',sub:''})).join('');
+    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,sub:''})).join('');
   document.querySelector('#deckcount').textContent=`덱 ${draft.length}/6 · 보유 ${cards.filter(c=>ownsCard(c.id)).length}/60종`;
   document.querySelector('#save-deck').disabled=draft.length!==6;
 }
