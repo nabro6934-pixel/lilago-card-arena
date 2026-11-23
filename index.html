@@ -193,6 +193,11 @@ header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius
 @keyframes panel-entry{from{opacity:0;translate:0 7px}to{opacity:1;translate:0 0}}
 .home-play button:hover:enabled{background:#ff8290;filter:drop-shadow(0 0 10px #ff687b)}
 .home-tools button:hover,.home-tabs button:hover,.online-list li:hover{border-color:#7ef3d9;background-color:#204763}
+header[hidden]{display:none!important}
+#deck-slots .card.deck-slot .portrait{aspect-ratio:1.14}
+#deck-slots .card.deck-slot .cardbody{gap:5px;padding:9px}
+#deck-slots .card.deck-slot .name{font-size:inherit}
+#deck-slots .card.deck-slot .stats,#deck-slots .card.deck-slot .skill{display:block}
 
 </style></head>
 <body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button></nav></header>
@@ -234,7 +239,7 @@ function showDetail(id, copyIndex){
   if(!owned&&tab==='collection')return;
   const copies=cardCopies(id);
   const copy=copies[copyIndex]||copies.find(unit=>unit.serial);
-  const serial=copy?.serial?'#'+copy.serial:copy?.localSerial?'AI #'+copy.localSerial:'';
+  const serial=copy?.serial?'#'+copy.serial:copy?.localSerial?'연습 #'+copy.localSerial:'';
   const selected=draft.includes(id);
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'덱에서 빼기':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
   detail.innerHTML=`<button class="icon-close" id="close-detail" aria-label="닫기">×</button>
@@ -288,11 +293,11 @@ function updateHeader(){
   const toggle=document.querySelector('#audio-toggle');
   toggle.setAttribute?.('aria-pressed',String(soundOn));
   toggle.textContent=soundOn?'효과음 켜짐':'효과음 꺼짐';
-  document.querySelector('#ai-coins').textContent=onlineProfile&&!onlineProfile.sharedPracticeWallet?`AI ${profile.coins.toLocaleString()} 코인`:'';
+  document.querySelector('#ai-coins').textContent=onlineProfile&&!onlineProfile.sharedPracticeWallet?`연습 ${profile.coins.toLocaleString()} 코인`:'';
   document.querySelector('#coins').textContent=`◈ ${(onlineProfile?.coins??profile.coins).toLocaleString()} 코인`;
   document.querySelectorAll('[data-tab]').forEach(b=>{b.toggleAttribute('aria-current',b.dataset.tab===tab&&(!b.dataset.panel||b.dataset.panel===onlinePanel));});
 }
-function render(){updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured})[tab]();}
+function render(){document.querySelector('header').hidden=tab==='battle'&&!!match;updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured,matching:renderMatching})[tab]();}
 const seal='<span class="brand-seal" aria-hidden="true">◇</span><b>릴라고<br>카드 아레나</b>';
 let audio=null,soundOn=false;
 try{soundOn=localStorage.getItem('lilago-card-audio')==='on';}catch{}
@@ -322,7 +327,7 @@ function renderPack(){
   <div class="pack-portal" aria-hidden="true"></div>
   ${result&&!opening?`<div class="grid revealed ${packResults.length===1?'single':''}">${result}</div>`:`<div class="pack"><div class="pack-half pack-top"></div><div class="pack-half pack-bottom"></div><div class="pack-mark">${seal}</div></div>`}
   ${opening?'<span class="pack-burst" aria-hidden="true"></span>':''}</section>
-  ${onlineMessage?`<p role="status">${escapeHTML(onlineMessage)}</p>`: ''}<div class="toolbar pack-actions"><button class="btn primary" data-draw="1" ${opening||(onlineProfile?.coins??profile.coins)<100?'disabled':''}>1장 뽑기 · 100</button><button class="btn" data-draw="10" ${opening||(onlineProfile?.coins??profile.coins)<900?'disabled':''}>10장 뽑기 · 900</button>${onlineProfile&&!onlineProfile.sharedPracticeWallet?`<button class="btn" data-ai-draw="1" ${opening||profile.coins<100?'disabled':''}>AI 코인으로 1장 · 100</button><button class="btn" data-ai-draw="10" ${opening||profile.coins<900?'disabled':''}>AI 코인으로 10장 · 900</button>`:''}</div>`;
+  ${onlineMessage?`<p role="status">${escapeHTML(onlineMessage)}</p>`: ''}<div class="toolbar pack-actions"><button class="btn primary" data-draw="1" ${opening||(onlineProfile?.coins??profile.coins)<100?'disabled':''}>1장 뽑기 · 100</button><button class="btn" data-draw="10" ${opening||(onlineProfile?.coins??profile.coins)<900?'disabled':''}>10장 뽑기 · 900</button>${onlineProfile&&!onlineProfile.sharedPracticeWallet?`<button class="btn" data-ai-draw="1" ${opening||profile.coins<100?'disabled':''}>연습 코인으로 1장 · 100</button><button class="btn" data-ai-draw="10" ${opening||profile.coins<900?'disabled':''}>연습 코인으로 10장 · 900</button>`:''}</div>`;
 }
 function draw(count, local=false){
   if(onlineProfile&&!local&&!opening){void drawOnline(count);return;}
@@ -364,19 +369,19 @@ function collectionGrid(){
   }).join('')||'<p>해당하는 카드가 없어.</p>';
   document.querySelector('#deck-slots').innerHTML=Array.from({length:6},(_,i)=>draft[i]===undefined
     ? `<button class="btn deck-slot deck-empty" disabled><span>${i+1}</span>빈 슬롯</button>`
-    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,extra:'deck-slot',sub:'슬롯 '+(i+1)})).join('');
+    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,extra:'deck-slot',sub:''})).join('');
   document.querySelector('#deckcount').textContent=`덱 ${draft.length}/6 · 보유 ${cards.filter(c=>ownsCard(c.id)).length}/60종`;
   document.querySelector('#save-deck').disabled=draft.length!==6;
 }
 function renderCollection(){
-  main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">덱 저장</button></div><div id="deck-slots"></div><p>덱에서 교체할 자리를 누른 뒤, 보유 카드의 교체 버튼을 눌러.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div class="grid" id="collection-grid"></div>';
+  main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">저장</button></div><div id="deck-slots"></div><div id="deck-message" role="status"></div><p>덱에서 교체할 자리를 누른 뒤, 보유 카드의 교체 버튼을 눌러.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div class="grid" id="collection-grid"></div>';
   document.querySelector('#query').value=query;collectionGrid();
 }
 let copySubject=null, copyReturn='collection';
 function renderCopies(){
   const card=cards[copySubject];
   const tiles=cardCopies(card.id).map((unit,i)=>{
-    const serial=unit.serial?'#'+unit.serial:unit.localSerial?'AI #'+unit.localSerial:'기본 카드';
+    const serial=unit.serial?'#'+unit.serial:unit.localSerial?'연습 #'+unit.localSerial:'기본 카드';
     const listed=marketItems.some(item=>item.id===unit.id);
     return `<article class="copy-tile">${cardHTML(card,{action:'copy-index',sub:serial,key:i})}<small>${listed?'판매 중':'보유 중'}</small></article>`;
   });
@@ -405,7 +410,7 @@ function returnAfterMatch(state){
 }
 function start(){
   const enemyDeck=shuffle(cards.map(c=>c.id)).slice(0,6);
-  match={turn:1,teams:[[],[]],hands:[[...new Set([...profile.deck.filter(ownsCard),...starter])].slice(0,6),enemyDeck],selected:null,lane:null,history:[],busy:false,outcome:null};
+  match={turn:1,teams:[[],[]],deadline:Date.now()+20000,hands:[[...new Set([...profile.deck.filter(ownsCard),...starter])].slice(0,6),enemyDeck],selected:null,lane:null,history:[],busy:false,outcome:null};
   announceBattle(match,'대전 시작 · 1턴');
 }
 const line=(side,lane)=>match.teams[side].filter(u=>u.lane===lane&&u.hp>0);
@@ -419,10 +424,10 @@ function renderBattle(){
     const bannerCopy=cardCopies(hero.id).find(unit=>unit.serial||unit.localSerial);
     main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
     <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
-      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">대표 카드 변경</button></div><div class="home-art">${cardHTML(hero,{sub:bannerCopy?.serial?`#${bannerCopy.serial}`:bannerCopy?.localSerial?`AI #${bannerCopy.localSerial}`:''})}</div></div>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">대표 카드 변경</button></div><div class="home-art">${cardHTML(hero,{sub:bannerCopy?.serial?`#${bannerCopy.serial}`:bannerCopy?.localSerial?`연습 #${bannerCopy.localSerial}`:''})}</div></div>
     </section>
-    <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>AI 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
-    ${queued?queueMarkup():''}${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
+    <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
+    ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
     return;
   }
   const {turn,selected,lane,history,busy,outcome}=match;
@@ -432,7 +437,7 @@ function renderBattle(){
   }).join('');
   const hand=match.hands[0].map(id=>cardHTML(cards[id],{action:'pick',pressed:selected===id,disabled:busy||!!outcome})).join('');
   const result=outcome&&(match.online&&!match.ai?({win:'온라인 승리 · +10 트로피 · +120 코인',loss:'온라인 패배',draw:'온라인 무승부'})[outcome]:({win:'승리 · +120 코인',loss:'패배 · +40 코인',draw:'무승부 · +60 코인'})[outcome]);
-  main.innerHTML=`<section class="arena-shell ${match.phase||''}"><div class="arena-head"><div><div class="eyebrow">${match.online&&!match.ai?'온라인 1대1':'AI 대전'}</div><h1>세 구역 쟁탈전</h1></div><div class="round-meter" aria-label="${turn} / 5 턴">${zones.concat(['','']).map((_,i)=>`<i class="${i+1===turn?'now':i+1<turn?'past':''}">${i+1}</i>`).join('')}</div></div><div class="toolbar"><strong>${turn} / 5 턴</strong>${match.online&&match.deadline?`<span class="turn-clock" data-turn-clock>${Math.max(0,Math.ceil((match.deadline-Date.now())/1000))}초</span>`:''}<button class="btn" id="leave" ${busy?'disabled':''}>전투 메뉴</button></div><div class="battle-versus"><span>내 전열</span><b>${match.phase==='deployment'?'카드 공개':match.phase==='impact'?'전투 처리':match.phase==='skill'?'고유 능력':match.busy?'상대 대기':'배치 단계'}</b><span>${match.online?escapeHTML(match.opponent):'아레나 AI'}</span></div><div class="lanes">${board}</div>${skillBanner()}${match.announcement?`<div class="battle-announcement" role="status">${match.announcement}</div>`:''}${result?`<div class="arena-result result-${outcome}" role="status"><strong>${result}</strong></div>`:''}<div class="toolbar"><button class="btn primary" id="${outcome?(match.online&&!match.ai?'online-again':'start'):'commit'}" ${!outcome&&(busy||selected===null||lane===null)?'disabled':''}>${outcome?'다시 대전':'배치 확정'}</button>${selected!==null&&!outcome?`<button class="btn" data-detail="${selected}">고유 능력 보기</button>`:''}<span class="status" role="status">${result?'':(busy?(match.phase==='impact'?'공격 및 능력 적용':match.phase==='skill'?'고유 능력 발동':match.online&&!match.phase?'상대가 배치를 확정할 때까지 대기 중':'양쪽 카드 공개'):selected===null?'배치할 카드를 골라줘.':lane===null?'배치할 구역을 골라줘.':'배치할 준비가 됐어.')}</span></div><div class="hand">${hand}</div><details class="rules"><summary>전투 규칙</summary>매 턴 양쪽이 카드 1장을 동시에 배치해. 카드들은 같은 구역의 맨 앞 적을 공격하고, 일반 공격 피해는 동시에 적용돼. 다섯 번째 턴이 끝나면 구역별 생존 카드 체력 합이 높은 쪽이 그 구역을 차지해. 동점인 구역은 중립이고, 두 구역을 차지한 쪽이 없으면 무승부야.</details><div class="log" aria-label="전투 기록">${history.slice(0,18).map(s=>`<div>${s}</div>`).join('')||'이번 전투의 배치와 능력 발동 기록이 여기 표시돼.'}</div></section>`;
+  main.innerHTML=`<section class="arena-shell ${match.phase||''}"><div class="arena-head"><div><div class="eyebrow">${match.online&&!match.ai?'온라인 1대1':'연습 대전'}</div><h1>세 구역 쟁탈전</h1></div><div class="round-meter" aria-label="${turn} / 5 턴">${zones.concat(['','']).map((_,i)=>`<i class="${i+1===turn?'now':i+1<turn?'past':''}">${i+1}</i>`).join('')}</div></div><div class="toolbar"><strong>${turn} / 5 턴</strong>${match.deadline&&!outcome?`<span class="turn-clock" data-turn-clock>${Math.max(0,Math.ceil((match.deadline-Date.now())/1000))}초</span>`:''}</div><div class="battle-versus"><span>내 전열</span><b>${match.phase==='deployment'?'카드 공개':match.phase==='impact'?'전투 처리':match.phase==='skill'?'고유 능력':match.busy?'상대 대기':'배치 단계'}</b><span>${match.online?escapeHTML(match.opponent):'연습 상대'}</span></div><div class="lanes">${board}</div>${skillBanner()}${match.announcement?`<div class="battle-announcement" role="status">${match.announcement}</div>`:''}${result?`<div class="arena-result result-${outcome}" role="status"><strong>${result}</strong></div>`:''}<div class="toolbar"><button class="btn primary" id="${outcome?(match.online&&!match.ai?'online-again':'start'):'commit'}" ${!outcome&&(busy||selected===null||lane===null)?'disabled':''}>${outcome?'다시 대전':'배치 확정'}</button>${selected!==null&&!outcome?`<button class="btn" data-detail="${selected}">고유 능력 보기</button>`:''}<span class="status" role="status">${result?'':(busy?(match.phase==='impact'?'공격 및 능력 적용':match.phase==='skill'?'고유 능력 발동':match.online&&!match.phase?'상대가 배치를 확정할 때까지 대기 중':'양쪽 카드 공개'):selected===null?'배치할 카드를 골라줘.':lane===null?'배치할 구역을 골라줘.':'배치할 준비가 됐어.')}</span></div><div class="hand">${hand}</div><details class="rules"><summary>전투 규칙</summary>매 턴 양쪽이 카드 1장을 동시에 배치해. 카드들은 같은 구역의 맨 앞 적을 공격하고, 일반 공격 피해는 동시에 적용돼. 다섯 번째 턴이 끝나면 구역별 생존 카드 체력 합이 높은 쪽이 그 구역을 차지해. 동점인 구역은 중립이고, 두 구역을 차지한 쪽이 없으면 무승부야.</details><div class="log" aria-label="전투 기록">${history.slice(0,18).map(s=>`<div>${s}</div>`).join('')||'이번 전투의 배치와 능력 발동 기록이 여기 표시돼.'}</div></section>`;
 }
 function skillBanner(){
   const cast=match.cast;
@@ -576,7 +581,7 @@ function commit(){
     m.teams[u.side].push(u);
     m.hands[u.side]=m.hands[u.side].filter(id=>id!==u.c.id);
   });
-  m.history.unshift(`${m.turn}턴 · 내 ${players[0].c.name} (${zones[m.lane]}) / AI ${players[1].c.name} (${zones[enemy.lane]})`);
+  m.history.unshift(`${m.turn}턴 · 내 ${players[0].c.name} (${zones[m.lane]}) / 상대 ${players[1].c.name} (${zones[enemy.lane]})`);
   m.used??=[];m.used.push(m.selected);
   m.busy=true;m.phase='deployment';m.fresh=players;announceBattle(m,m.turn+'턴 카드 배치');playSound('deploy');
   setTimeout(()=>{
@@ -612,7 +617,7 @@ function commit(){
         for(const id of m.used){const row=profile.stats[id]??={uses:0,wins:0};row.uses++;if(m.outcome==='win')row.wins++;}
         if(m.outcome==='win'){profile.wins++;if(tab==='battle')playSound('win');}
         save();returnAfterMatch(m);
-      }else{m.turn++;announceBattle(m,m.turn+'턴 시작');}
+      }else{m.turn++;m.deadline=Date.now()+20000;announceBattle(m,m.turn+'턴 시작');}
       if(tab==='battle')render();else updateHeader();
       },reduced?10:660);
     },reduced?10:760);
@@ -623,7 +628,7 @@ function commit(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
   const {tab:dest,go,detail:id,pick,lane,draw:count,deck}=b.dataset;
-  if(dest||go){if(b.dataset.panel)onlinePanel=b.dataset.panel;tab=dest||go;render();return;}
+  if(dest||go){if(match&&tab==='battle')return;if(b.dataset.panel)onlinePanel=b.dataset.panel;tab=dest||go;render();return;}
   if(b.dataset.openCopies!==undefined){copySubject=+b.dataset.openCopies;copyReturn=tab;detail.close();tab='copies';render();return;}
   if(b.id==='copies-back'){tab=copyReturn;render();return;}
   if(b.dataset.copyIndex!==undefined){showDetail(copySubject,+b.dataset.copyIndex);return;}
@@ -649,10 +654,14 @@ document.addEventListener('click',e=>{
   if(b.id==='close-detail')detail.close();
   if(b.id==='save-deck'&&draft.length===6){
     const next=[...draft];
+    profile.deck=next;
+    if(!save()){b.textContent='저장 실패';return;}
+    b.textContent='저장 완료';
     if(onlineProfile){
       b.disabled=true;
-      void onlineFetch('/deck','POST',{deck:next}).then(()=>{profile.deck=next;save();b.textContent='저장 완료';}).catch(e=>{profile.deck=next;save();b.textContent='AI 덱 저장 · 온라인 카드 확인';}).finally(()=>{b.disabled=false;});
-    }else{profile.deck=next;b.textContent=save()?'저장 완료':'이번 실행에 적용됨';}}
+      void onlineFetch('/deck','POST',{deck:next}).catch(()=>{b.textContent='저장';const message=document.querySelector('#deck-message');if(message)message.textContent='이 기기에 저장했어. 온라인 덱은 서버에서 보유한 카드만 쓸 수 있어.';}).finally(()=>{b.disabled=false;});
+    }
+  }
 });
 document.addEventListener('change',e=>{if(e.target.id==='home-mode')homeMode=e.target.value;});
 document.addEventListener('input',e=>{if(e.target.id==='query'){query=e.target.value;collectionGrid();}});
@@ -711,17 +720,20 @@ async function startPractice(){
   finally{queueStarting=false;render();}
 }
 function queueMarkup(){return `<div class="queue-head"><strong>⚡ 결투 아레나</strong><span>대기 중</span></div><div class="queue-field"><div class="queue-box"><div class="queue-bars"><i></i><i></i><i></i></div><div class="queue-label">FINDING PLAYERS</div><h2>1대1 참가자를 찾는 중</h2><div class="queue-seats"><b>✓</b><b>…</b></div><strong>1 / 2명 <small>· <span id="queue-seconds">0</span>초 대기</small></strong><p>플레이어가 모두 모이면 시작해요.</p></div><button class="btn queue-cancel" data-online-action="cancel">매칭 취소</button><div class="queue-tip"><b>알고 있었나요?</b><p>고유 능력이 발동하면 기술 이름이 전투 화면에 표시돼!</p></div></div>`;}
+function renderMatching(){
+  main.innerHTML=queued?queueMarkup():`<section class="sub-head"><h1>온라인 1대1 매칭</h1><p role="status">${escapeHTML(queueNotice||'상대를 찾을 준비 중…')}</p><button class="btn" data-go="battle" ${queueStarting?'disabled':''}>‹ 홈</button></section>`;
+}
 async function queueFromHome(){
   if(queued||queueStarting)return;
   if(!token){const welcome=document.querySelector('#welcome');if(!welcome.open)welcome.showModal();return;}
-  queueStarting=true;queueNotice='';render();
+  tab='matching';queueStarting=true;queueNotice='';render();
   try{
     const status=await onlineFetch('/queue','POST',{});
     if(status.room){queued=false;tab='battle';loadOnlineMatch(status.room);return;}
     queued=status.queued;queuedAt=Date.now();
     if(queued)scheduleOnline(pollQueue);
   }catch(error){queueNotice=error.message;}
-  finally{queueStarting=false;if(tab==='battle')render();}
+  finally{queueStarting=false;if(tab==='matching')render();}
 }
 function renderOnline(){
   const tabs=[['queue','1대1 대전'],['friends','친구'],['rank','리더보드'],['profile','프로필'],['request','신규 카드 요청'],['market','시장']];
@@ -731,7 +743,7 @@ function renderOnline(){
   }else if(!onlineProfile){
     panel=token?'<p>온라인 프로필 확인 중…</p><button class="btn" data-online-action="refresh">다시 연결</button>':'<h2>온라인 프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" required maxlength="20" autocomplete="nickname"></label><label>테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">연결</button></form>';
   }else if(onlinePanel==='queue'){
-    panel=queued?queueMarkup():`<h2>온라인 1대1</h2><p>선택한 덱으로 대결해. 한 턴은 최대 60초야.</p><button class="btn primary" data-online-action="${queued?'cancel':'queue'}">${queued?'매칭 취소':'상대 찾기'}</button>${queued?'<p>상대를 찾는 중이야…</p>':''}`;
+    panel=queued?queueMarkup():`<h2>온라인 1대1</h2><p>선택한 덱으로 대결해. 한 턴은 최대 20초야.</p><button class="btn primary" data-online-action="${queued?'cancel':'queue'}">${queued?'매칭 취소':'상대 찾기'}</button>${queued?'<p>상대를 찾는 중이야…</p>':''}`;
   }else if(onlinePanel==='friends'){
     panel=`<h2>친구</h2><p>내 친구 코드 <b>${onlineProfile.id}</b></p><form data-online-form="friends"><label>친구 코드 <input name="id" required maxlength="8" autocomplete="off"></label><button class="btn primary">추가</button></form><ul class="online-list">${onlineLists.friends.map(p=>`<li>${emblem(p)}<div><b>${escapeHTML(p.name)}</b><small>#${p.id}</small></div><span>🏆 ${p.trophies} · ${p.wins}승</span></li>`).join('')}</ul>`;
   }else if(onlinePanel==='profile'){
@@ -773,7 +785,7 @@ async function pollQueue(){
     if(!queued)onlineMessage='매칭이 끝났어. 다시 상대를 찾아줘.';
   }catch(e){onlineMessage=e.message;}
   if(tab==='online')renderOnline();
-  else if(tab==='battle'&&!match)render();
+  else if(tab==='matching'){if(!queued)queueNotice=onlineMessage;render();}
   if(queued)scheduleOnline(pollQueue);
 }
 function loadOnlineMatch(room){
@@ -783,7 +795,7 @@ function loadOnlineMatch(room){
   const teams=reorient(room.teams).map((team,side)=>team.map(u=>({...u,side,c:cards[u.c.id]})));
   const outcome=room.winner===null?null:room.winner===-1?'draw':room.winner===room.side?'win':'loss';
   const state={
-    online:true,ai:room.ai,roomId:room.id,opponent:room.opponent.name,teams,hands:[room.hands,[]],turn:room.turn,deadline:room.deadline,
+    online:true,ai:room.ai,roomId:room.id,opponent:room.opponent.name,teams,hands:[room.hands,[]],turn:room.turn,deadline:outcome?null:(!played&&previous?previous.deadline:Math.min(room.deadline,Date.now()+20000)),
     selected:played?null:(previous?.selected??null),lane:played?null:(previous?.lane??null),busy:room.submitted,outcome,
     history:previous?.history||[],lastTurn:room.last?.turn??0
   };
@@ -857,7 +869,7 @@ document.addEventListener('click',async e=>{
       if(queued)scheduleOnline(pollQueue);
     }
   }catch(err){onlineMessage=err.message;}
-  finally{onlineBusy=false;if(tab==='online')renderOnline();else if(action==='cancel'&&tab==='battle')render();}
+  finally{onlineBusy=false;if(tab==='online')renderOnline();else if(action==='cancel'&&tab==='matching'){tab='battle';render();}}
 });
 document.addEventListener('submit',async e=>{
   const kind=e.target.dataset.onlineForm;
@@ -885,7 +897,12 @@ document.addEventListener('submit',async e=>{
 if(typeof window!=='undefined')setInterval(()=>{
   const wait=document.querySelector('#queue-seconds');if(wait)wait.textContent=String(Math.floor((Date.now()-queuedAt)/1000));
   const clock=document.querySelector('[data-turn-clock]');
-  if(clock&&match?.deadline)clock.textContent=Math.max(0,Math.ceil((match.deadline-Date.now())/1000))+'초';
+  const state=match;
+  if(clock&&state?.deadline)clock.textContent=Math.max(0,Math.ceil((state.deadline-Date.now())/1000))+'초';
+  if(!state||state.busy||state.outcome||!state.deadline||Date.now()<state.deadline||!state.hands[0].length)return;
+  state.selected=state.hands[0][Math.floor(Math.random()*state.hands[0].length)];
+  state.lane=Math.floor(Math.random()*3);
+  if(state.online)void submitOnlineMove();else commit();
 },350);
 
 async function photoData(file){
