@@ -10,12 +10,11 @@ const deadlineMs = 20_000;
 const rooms = new Map();
 const queue = new Map();
 const registrations = new Map();
-const state = fs.existsSync(dataPath)
-  ? JSON.parse(fs.readFileSync(dataPath, 'utf8'))
-  : { players: {}, requests: [] };
+let state;
+let database;
+let pendingSave = Promise.resolve();
+const ownerId = (process.env.CARD_OWNER_ID || '').replace(/^#/, '').toUpperCase();
 const hash = token => crypto.createHash('sha256').update(token).digest('hex');
-state.serials ??= {};
-state.market ??= {};
 function account(p) {
   p.trophies ??= p.wins * 10;
   p.coins ??= 600;
@@ -27,10 +26,21 @@ const publicPlayer = p => {
   const {id,name,frame,wins,losses,trophies}=account(p);
   return {id,name,frame,wins,losses,trophies};
 };
-const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, inventory:p.inventory, stats:p.stats });
+const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, canViewAllCards:!!ownerId && p.id===ownerId, inventory:p.inventory, stats:p.stats });
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 function persist() {
+  if (database) {
+    const snapshot = JSON.stringify(state);
+    pendingSave = pendingSave.then(() => database.query(
+      'UPDATE lilago_card_arena_state SET payload = $1::jsonb WHERE singleton',
+      [snapshot]
+    )).catch(error => {
+      console.error('Card database write failed:', error.code || error.name);
+      process.exit(1);
+    });
+    return;
+  }
   fs.mkdirSync(path.dirname(dataPath), { recursive: true });
   fs.writeFileSync(dataPath + '.tmp', JSON.stringify(state), { mode: 0o600 });
   fs.renameSync(dataPath + '.tmp', dataPath);
@@ -94,7 +104,7 @@ function clean() {
     }
   }
 }
-setInterval(clean, 250).unref();
+
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -181,10 +191,11 @@ const handlers = new Map([
   }],
   ['POST /draw', (req, body, p) => {
     const count=body.count===10?10:1, price=count===10?900:100;
+    const catalog=body.catalog===cards.length?cards:cards.slice(0,60);
     if(p.coins<price)throw error(409,'코인이 부족해.');
     p.coins-=price;
     const results=Array.from({length:count},()=>{
-      const roll=Math.random(), pool=cards.filter(c=>c.rar===(roll<.6?1:roll<.92?2:3));
+      const roll=Math.random(), pool=catalog.filter(c=>c.rar===(roll<.6?1:roll<.92?2:3));
       const card=pool[crypto.randomInt(pool.length)].id;
       const serial=state.serials[card]=(state.serials[card]||0)+1;
       const unit={id:crypto.randomUUID(),card,serial};
@@ -223,7 +234,7 @@ const handlers = new Map([
     clean();
     const active=[...rooms.values()].find(room=>room.ai&&room.ids[0]===p.id&&room.winner===null);
     if(active)return view(active,p.id);
-    const botDeck=cards.map(c=>c.id);
+    const botDeck=(body.catalog===cards.length?cards:cards.slice(0,60)).map(c=>c.id);
     for(let i=botDeck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[botDeck[i],botDeck[j]]=[botDeck[j],botDeck[i]];}
     const room={ai:true,id:crypto.randomUUID(),ids:[p.id],used:[[],[]],teams:[[],[]],hands:[deckFor(p),botDeck.slice(0,6)],moves:[null,null],turn:1,deadline:Date.now()+deadlineMs,winner:null,last:null};
     rooms.set(room.id,room);
@@ -269,7 +280,7 @@ const handlers = new Map([
   }]
 ]);
 
-http.createServer(async (req,res) => {
+const server = http.createServer(async (req,res) => {
   const origin=req.headers.origin;
   if (origin === allowedOrigin) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary','Origin');
@@ -280,7 +291,7 @@ http.createServer(async (req,res) => {
   res.setHeader('Content-Type','application/json; charset=utf-8');
   try {
     const url=new URL(req.url,'http://localhost');
-    if (url.pathname==='/health') {res.end('{"ok":true}');return;}
+    if (url.pathname==='/health') {res.end(JSON.stringify({ok:true,storage:database?'postgres':'file',cards:cards.length}));return;}
     const key=req.method+' '+url.pathname;
     const handler=handlers.get(key);
     if (!handler) throw error(404,'지원하지 않는 경로야.');
@@ -288,10 +299,46 @@ http.createServer(async (req,res) => {
     const player=key==='POST /profile/new'||key==='GET /leaderboard'?null:await playerFor(req);
     const body=req.method==='POST'?await readBody(req):{};
     if (!body || typeof body!=='object' || Array.isArray(body)) throw error(400,'요청 형식을 확인해줘.');
-    res.end(JSON.stringify(handler(req,body,player,url)));
+    const result = handler(req,body,player,url);
+    await pendingSave;
+    res.end(JSON.stringify(result));
   } catch (e) {
     if(!e.status)console.error(e);
     res.writeHead(e.status||500);
     res.end(JSON.stringify({error:e.status?e.message:'서버에서 요청을 처리하지 못했어.'}));
   }
-}).listen(Number(process.env.PORT)||3000);
+});
+
+async function start() {
+  const hasFile = fs.existsSync(dataPath);
+  const initial = hasFile
+    ? JSON.parse(fs.readFileSync(dataPath, 'utf8'))
+    : { players: {}, requests: [], serials: {}, market: {} };
+  if (process.env.CARD_DATABASE_URL) {
+    const { Pool } = require('pg');
+    database = new Pool({ connectionString: process.env.CARD_DATABASE_URL, max: 1 });
+    await database.query(
+      'CREATE TABLE IF NOT EXISTS lilago_card_arena_state (singleton boolean PRIMARY KEY CHECK (singleton), payload jsonb NOT NULL)'
+    );
+    if (hasFile || process.env.CARD_ALLOW_EMPTY_INIT === '1') {
+      await database.query(
+        'INSERT INTO lilago_card_arena_state (singleton, payload) VALUES (true, $1::jsonb) ON CONFLICT DO NOTHING',
+        [JSON.stringify(initial)]
+      );
+    }
+    const { rows } = await database.query('SELECT payload FROM lilago_card_arena_state WHERE singleton');
+    if (!rows.length) throw new Error('An existing card state backup is required');
+    state = rows[0].payload;
+  } else {
+    if (process.env.RENDER_SERVICE_ID) throw new Error('CARD_DATABASE_URL is required on Render');
+    state = initial;
+  }
+  state.serials ??= {};
+  state.market ??= {};
+  setInterval(clean, 250).unref();
+  server.listen(Number(process.env.PORT) || 3000);
+}
+start().catch(error => {
+  console.error('Card server startup failed:', error.code || error.message);
+  process.exit(1);
+});
