@@ -22,11 +22,19 @@ function account(p) {
   p.stats ??= {};
   return p;
 }
+const startersFor = p => p.starters ?? starter;
+function profileCardFor(p) {
+  const chosen = p.profileCard;
+  const copy = chosen?.unit && p.inventory.find(u => u.id === chosen.unit && u.card === chosen.card);
+  if (copy) return {card:copy.card, serial:copy.serial};
+  if (chosen && !chosen.unit && startersFor(p).includes(chosen.card)) return {card:chosen.card};
+  return {card:startersFor(p)[0]};
+}
 const publicPlayer = p => {
   const {id,name,frame,wins,losses,trophies}=account(p);
-  return {id,name,frame,wins,losses,trophies};
+  return {id,name,frame,wins,losses,trophies,profileCard:profileCardFor(p)};
 };
-const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, canViewAllCards:!!ownerId && p.id===ownerId, inventory:p.inventory, stats:p.stats });
+const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, canViewAllCards:!!ownerId && p.id===ownerId, inventory:p.inventory, stats:p.stats, starters:startersFor(p), deck:deckFor(p) });
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 function persist() {
@@ -134,8 +142,8 @@ async function playerFor(req) {
   return account(player);
 }
 
-function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>p.inventory.some(u=>u.card===id)||starter.includes(id)),...starter])].slice(0,6);}
-const sellable=(p,card)=>p.inventory.filter(u=>u.card===card&&!state.market[u.id]).length>1 || starter.includes(card);
+function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>p.inventory.some(u=>u.card===id)||startersFor(p).includes(id)),...startersFor(p)])].slice(0,6);}
+const sellable=(p,card)=>p.inventory.filter(u=>u.card===card&&!state.market[u.id]).length>1 || startersFor(p).includes(card);
 const marketList=()=>Object.values(state.market).map(item=>({...item,sellerName:state.players[item.seller].name}));
 const handlers = new Map([
   ['POST /profile/new', (req, body) => {
@@ -147,6 +155,9 @@ const handlers = new Map([
     const token = crypto.randomBytes(32).toString('hex');
     const id = crypto.randomBytes(4).toString('hex').toUpperCase();
     const player = { id, key: hash(token), name, frame: ['mint','violet','amber'].includes(body.frame)?body.frame:'mint', icon: 0, wins: 0, losses: 0, rating: 1000, friends: [] };
+    const eligible=cards.filter(c=>c.rar===1 && c.id<60).map(c=>c.id);
+    player.starters=Array.from({length:6},()=>eligible.splice(crypto.randomInt(eligible.length),1)[0]);
+    player.profileCard={card:player.starters[crypto.randomInt(player.starters.length)]};
     state.players[id] = player;
     persist();
     return { token, player: privatePlayer(player) };
@@ -157,6 +168,14 @@ const handlers = new Map([
       throw error(400, '프로필 설정을 확인해줘.');
     }
     Object.assign(p, { name, frame: body.frame });
+    persist();
+    return privatePlayer(p);
+  }],
+  ['POST /profile/card', (req, body, p) => {
+    const {card,unit}=body;
+    const owned=unit ? p.inventory.some(u=>u.id===unit&&u.card===card) : startersFor(p).includes(card);
+    if(!Number.isInteger(card)||!cards[card]||!owned)throw error(400,'보유한 카드만 프로필에 사용할 수 있어.');
+    p.profileCard=unit?{card,unit}:{card};
     persist();
     return privatePlayer(p);
   }],
@@ -186,7 +205,7 @@ const handlers = new Map([
   }],
   ['GET /requests', (req, body, p) => state.requests.filter(r => r.player === p.id).reverse()],
   ['POST /deck', (req, body, p) => {
-    if(!Array.isArray(body.deck)||body.deck.length!==6||new Set(body.deck).size!==6||body.deck.some(id=>!starter.includes(id)&&!p.inventory.some(u=>u.card===id)))throw error(400,'온라인 덱에 넣을 카드인지 확인해줘.');
+    if(!Array.isArray(body.deck)||body.deck.length!==6||new Set(body.deck).size!==6||body.deck.some(id=>!startersFor(p).includes(id)&&!p.inventory.some(u=>u.card===id)))throw error(400,'온라인 덱에 넣을 카드인지 확인해줘.');
     p.deck=body.deck;persist();return {ok:true};
   }],
   ['POST /draw', (req, body, p) => {
@@ -224,7 +243,7 @@ const handlers = new Map([
     const seller=account(state.players[item.seller]);
     const unit=seller.inventory.find(u=>u.id===item.id);
     if(!unit)throw error(409,'카드가 이미 판매됐어.');
-    if(!starter.includes(item.card)&&!seller.inventory.some(u=>u.id!==item.id&&u.card===item.card&&!state.market[u.id]))throw error(409,'판매자가 보유할 카드가 한 장은 남아야 해.');
+    if(!startersFor(seller).includes(item.card)&&!seller.inventory.some(u=>u.id!==item.id&&u.card===item.card&&!state.market[u.id]))throw error(409,'판매자가 보유할 카드가 한 장은 남아야 해.');
     p.coins-=item.price;seller.coins+=item.price;
     seller.inventory=seller.inventory.filter(u=>u.id!==item.id);
     p.inventory.push(unit);delete state.market[item.id];
