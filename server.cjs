@@ -144,6 +144,28 @@ async function playerFor(req) {
 
 function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>p.inventory.some(u=>u.card===id)||startersFor(p).includes(id)),...startersFor(p)])].slice(0,6);}
 const sellable=(p,card)=>p.inventory.filter(u=>u.card===card&&!state.market[u.id]).length>1 || startersFor(p).includes(card);
+const saleWindow = 21 * 24 * 60 * 60 * 1000;
+function serialPremium(serial) {
+  if (serial === 1) return 1.9;
+  if (serial === 2) return 1.6;
+  if (serial === 3) return 1.45;
+  if (serial >= 4 && serial <= 10) return 1.23;
+  return serial >= 11 && serial <= 25 ? 1.1 : 1;
+}
+function marketValue(card, supply, serial) {
+  const rarityPrice = [0, 160, 360, 800][card.rar];
+  const cardFactor = Math.max(.72, .7 + .006*card.atk + .0015*card.hp + .004*card.n);
+  const baseline = rarityPrice * cardFactor * Math.max(.36, 1.25/Math.sqrt(1+supply/30));
+  const cutoff = Date.now() - saleWindow;
+  const samples = (state.marketSales[card.id] ?? []).filter(sale=>sale.time>=cutoff);
+  const normalized = samples.map(sale=>sale.price/serialPremium(sale.serial)).sort((a,b)=>a-b);
+  const middle = Math.floor(normalized.length/2);
+  const median = normalized.length%2 ? normalized[middle] : (normalized[middle-1]+normalized[middle])/2;
+  const tradeWeight = Math.min(.6, normalized.length*.12);
+  const demand = tradeWeight ? Math.max(baseline*.5, Math.min(baseline*3, median)) : baseline;
+  const value = Math.round((baseline*(1-tradeWeight)+demand*tradeWeight)*serialPremium(serial));
+  return {value, supply, serial, recentSales:normalized.length};
+}
 const marketList=()=>Object.values(state.market).map(item=>({...item,sellerName:state.players[item.seller].name}));
 const handlers = new Map([
   ['POST /profile/new', (req, body) => {
@@ -223,6 +245,16 @@ const handlers = new Map([
     });
     persist();return {player:privatePlayer(p),results};
   }],
+  ['GET /market/value', (req, body, player, url) => {
+    const id = url.searchParams.get('card');
+    const serial = url.searchParams.get('serial');
+    const card = id!==null && /^\d+$/.test(id) ? cards[Number(id)] : null;
+    const supply = card ? state.serials[card.id] ?? 0 : 0;
+    if (!card || (serial!==null && (!/^[1-9]\d*$/.test(serial) || Number(serial)>supply))) {
+      throw error(400,'카드 번호를 확인해 줘.');
+    }
+    return marketValue(card, supply, serial===null ? null : Number(serial));
+  }],
   ['GET /market', () => marketList()],
   ['POST /market/list', (req, body, p) => {
     const unit=p.inventory.find(u=>u.id===body.id);
@@ -247,6 +279,10 @@ const handlers = new Map([
     p.coins-=item.price;seller.coins+=item.price;
     seller.inventory=seller.inventory.filter(u=>u.id!==item.id);
     p.inventory.push(unit);delete state.market[item.id];
+    const sales = state.marketSales[unit.card] ?? [];
+    const now = Date.now();
+    state.marketSales[unit.card] = [{serial:unit.serial, price:item.price, time:now},
+      ...sales.filter(sale=>sale.serial!==unit.serial&&sale.time>=now-saleWindow)].slice(0,12);
     persist();return {player:privatePlayer(p),market:marketList()};
   }],
   ['POST /practice', (req, body, p) => {
@@ -315,7 +351,7 @@ const server = http.createServer(async (req,res) => {
     const handler=handlers.get(key);
     if (!handler) throw error(404,'지원하지 않는 경로야.');
     if (origin && origin!==allowedOrigin) throw error(403,'허용되지 않은 게임 주소야.');
-    const player=key==='POST /profile/new'||key==='GET /leaderboard'?null:await playerFor(req);
+    const player=key==='POST /profile/new'||(key==='GET /leaderboard'||key==='GET /market/value')?null:await playerFor(req);
     const body=req.method==='POST'?await readBody(req):{};
     if (!body || typeof body!=='object' || Array.isArray(body)) throw error(400,'요청 형식을 확인해줘.');
     const result = handler(req,body,player,url);
@@ -353,6 +389,7 @@ async function start() {
     state = initial;
   }
   state.serials ??= {};
+  state.marketSales ??= {};
   state.market ??= {};
   setInterval(clean, 250).unref();
   server.listen(Number(process.env.PORT) || 3000);
