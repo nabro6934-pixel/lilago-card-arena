@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11131b"><title>릴라고 카드 아레나</title>
+<style>
+:root{color-scheme:dark;--bg:#11131b;--line:#363440;--ink:#f8f3eb;--muted:#bbb6c7;--gold:#ffd175;--mint:#62ead0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#2d2244,transparent 40rem),var(--bg);color:var(--ink);font:15px system-ui,sans-serif;min-height:100vh}button,select,input{font:inherit}button{cursor:pointer;color:inherit}button:disabled{cursor:default;opacity:.45}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+header{border-bottom:1px solid var(--line);background:#13141ddd}header>div{max-width:1200px;margin:auto;padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:clamp(16px,4.3vw,23px);font-weight:900;letter-spacing:-.06em}.brand b{color:var(--gold)}.balance{color:var(--gold);font-weight:800;white-space:nowrap}
+nav{max-width:1200px;margin:auto;display:flex;padding:0 22px;gap:8px}nav button{border:0;border-bottom:2px solid transparent;background:none;padding:12px 14px;color:var(--muted);font-weight:700}nav [aria-current]{color:var(--gold);border-bottom-color:var(--gold)}
+main{max-width:1200px;margin:auto;padding:28px 22px 60px}h1{margin:0;font-size:clamp(28px,6vw,52px);letter-spacing:-.08em}p{line-height:1.6;color:var(--muted)}.eyebrow{color:var(--gold);font-size:12px;letter-spacing:.16em;font-weight:800}.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}.btn,input,select{border:1px solid #565063;border-radius:9px;background:#262434;padding:10px 14px}.primary{background:var(--gold);color:#211722;border-color:var(--gold);font-weight:900}.btn:hover:enabled{filter:brightness(1.15)}
+.hero{min-height:325px;display:flex;align-items:center;padding:clamp(20px,5vw,55px);border:1px solid #524463;border-radius:20px;background:linear-gradient(90deg,#1a1429 15%,#261a3be6 53%,#261a3b30),var(--hero) center right / auto 135% no-repeat,#241b35}.hero p{max-width:420px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}.card{position:relative;isolation:isolate;display:flex;flex-direction:column;width:100%;min-width:0;text-align:left;border-radius:13px;overflow:hidden;padding:0;border:1px solid var(--foil);background:linear-gradient(145deg,color-mix(in srgb,var(--foil) 25%,#151421),#141620 65%);box-shadow:0 6px 18px #0006;transition:transform .18s,box-shadow .18s}.card:hover,.card[aria-pressed=true]{transform:translateY(-3px);box-shadow:0 0 20px color-mix(in srgb,var(--foil) 42%,transparent)}.card:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(120deg,transparent 32%,#fff3 49%,transparent 65%);transform:translateX(-110%)}.card:hover:after,.revealed .card:after{animation:shine .8s both}.portrait{width:100%;aspect-ratio:1.14;object-fit:contain;background:radial-gradient(ellipse,color-mix(in srgb,var(--foil) 35%,#2d253e),#151522 78%);display:block}.cardbody{display:grid;gap:5px;padding:9px;flex:1;align-content:start}.meta{display:flex;justify-content:space-between;color:var(--foil);font-size:10px;font-weight:800;gap:3px}.name{font-weight:900;overflow-wrap:anywhere;line-height:1.2}.stats{color:#e7e3ee;font-size:12px}.skill{font-size:11px;color:var(--foil);font-weight:750}.unowned .portrait{filter:saturate(.3) brightness(.63)}.selected{outline:2px solid var(--mint);outline-offset:2px}
+.lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.lane{position:relative;background:linear-gradient(#34243899,#1d2133);border:1px solid var(--line);border-radius:13px;padding:9px;min-width:0}.lane.chosen{border-color:var(--mint);box-shadow:0 0 18px #62ead044}.lane.adv{border-color:#537f78}.lane.behind{border-color:#8b5367}.lane-title{width:100%;padding:7px 2px;border:1px solid #544761;border-radius:7px;background:#22202e;font-weight:800}.lane-title[aria-pressed=true]{color:var(--mint);border-color:var(--mint)}.lane-score{text-align:center;font-size:12px;color:var(--muted);margin:7px 0}.units{display:flex;gap:4px;flex-wrap:wrap;min-height:65px;justify-content:center;align-items:center}.unit{padding:2px;background:#161923;border:1px solid var(--foil);width:clamp(33px,9vw,65px);border-radius:6px;overflow:hidden;text-align:center}.unit img{display:block;width:100%;aspect-ratio:1;object-fit:contain}.unit span{font-size:10px;display:block;background:#141624}.enemy .unit span{color:#ffb3c8}.ally .unit span{color:var(--mint)}.strike .unit{animation:hit .55s both}.strike .lane-score{animation:flash .55s both}
+.hand{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}.hand .card[aria-pressed=true]{outline:2px solid var(--mint)}.hand .card:disabled{filter:grayscale(.6);opacity:.35}.hand .portrait{aspect-ratio:1.35}.hand .cardbody{padding:6px}.hand .name{font-size:12px}.log{max-height:150px;overflow:auto;color:var(--muted);font-size:13px;background:#181925;border-radius:9px;padding:10px 12px}.log div+div{margin-top:4px}.status{min-height:24px;color:var(--mint);font-weight:800}.rules{color:var(--muted);line-height:1.6;margin:12px 0}.rules summary{cursor:pointer;color:var(--ink)}
+.pack-stage{min-height:310px;border:1px solid #58496b;border-radius:18px;display:grid;place-items:center;background:radial-gradient(ellipse,#4c2d65,#1b1728 68%);overflow:hidden}.pack{display:grid;place-content:center;text-align:center;width:154px;height:220px;border:2px solid #ffda92;border-radius:12px;color:var(--gold);background:repeating-linear-gradient(135deg,#ffffff09 0 1px,transparent 1px 9px),linear-gradient(135deg,#35274a,#121524 60%,#4a315a);box-shadow:0 0 35px #e6a1ff5e,inset 0 0 20px #ffd17544;font-size:20px;font-weight:900;letter-spacing:.08em}.pack b{font-size:54px}.opening .pack{animation:open .65s both}.revealed{padding:16px;width:100%}.revealed .card{animation:reveal .55s both;animation-delay:calc(var(--i) * 45ms)}.revealed .meta{color:var(--gold)}
+dialog{border:1px solid #665978;border-radius:16px;background:#201c2d;color:var(--ink);max-width:min(380px,calc(100% - 28px));padding:16px}dialog::backdrop{background:#090910dd}dialog img{max-height:45vh}.empty{color:var(--muted)}
+@keyframes shine{to{transform:translateX(110%)}}@keyframes hit{30%{transform:translateY(-7px);filter:brightness(1.6)}60%{transform:translateY(3px)}}@keyframes flash{40%{color:white;text-shadow:0 0 12px var(--mint)}}@keyframes open{35%{transform:rotate(-10deg) scale(1.07)}72%{transform:rotate(9deg) scale(1.18);filter:brightness(2)}100%{transform:scale(.8);opacity:0}}@keyframes reveal{from{opacity:0;transform:perspective(400px) rotateY(92deg) scale(.8)}to{opacity:1;transform:none}}
+@media(max-width:600px){main{padding:20px 12px 40px}header>div,nav{padding-left:12px;padding-right:12px}nav button{padding-inline:10px}.grid{grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:9px}.hand{grid-template-columns:repeat(3,minmax(0,1fr))}.lanes{gap:5px}.lane{padding:5px}.hero{background-image:linear-gradient(90deg,#1a1429 8%,#261a3bd9 62%,#261a3b75),var(--hero)}}
+@media(prefers-reduced-motion:reduce){*,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition:none!important}}
+/* A recessed portrait field, raised artwork and one neutral finish for every card. */
+:root{--gold:#c7ded8;--mint:#9ee5d6;--bg:#11171b;--ink:#f7f6f1;--muted:#a9b4b6;--line:#354146}
+body{background:radial-gradient(ellipse at 50% 0,#26353b,transparent 48rem),var(--bg)}
+header{background:#131b20ee}
+.btn,input,select{background:#202c32;border-color:#49585d}
+.primary{background:#c7ded8;border-color:#c7ded8;color:#182527}
+.card{--foil:#849b9a!important;aspect-ratio: .71;border:1px solid #859694;background:linear-gradient(155deg,#c3ceca 0,#868e8d 19%,#333f44 20%,#1a262b 91%,#abb6b2 92%,#74807f);border-radius:10px;padding:5px 5px 7px;transform-style:preserve-3d;box-shadow:inset 0 0 0 1px #e1efef44,inset 0 -3px 1px #090e12,2px 4px 0 #0a1013,0 12px 20px #080c0fa6}
+.card:hover,.card[aria-pressed=true]{transform:perspective(750px) rotateX(4deg) rotateY(-5deg) translateY(-4px);box-shadow:inset 0 0 0 1px #e1efef99,4px 7px 0 #090e12,0 16px 26px #020809a6}
+.card:after{background:linear-gradient(116deg,transparent 34%,#fff2 50%,transparent 64%)}
+.card .art-field{position:relative;display:grid;place-items:center;flex:1;min-height:0;width:100%;overflow:hidden;border-radius:5px 5px 0 0;border:1px solid #dde7e43b;border-bottom:0;background:radial-gradient(ellipse at 52% 50%,#7a8b8c,#3e5157 48%,#27363d 82%)}
+.art-field:before{content:"";position:absolute;inset:3px;border:1px solid #f4fffd20;border-bottom:0;border-radius:3px;pointer-events:none}
+.card .portrait{z-index:1;width:100%;height:100%;position:absolute;inset:0;aspect-ratio:auto;box-sizing:border-box;padding:4%;object-fit:contain;background:none;filter:drop-shadow(0 2px 1px #101617c9) drop-shadow(0 6px 4px #0b111781)}
+.card .cardbody{flex:0 0 auto;width:100%;gap:3px;min-height:71px;padding:7px 7px 5px;border:1px solid #d2ded96b;border-radius:0 0 5px 5px;background:linear-gradient(160deg,#e2e8e1,#aebcb8);color:#1d292b}
+.card .meta{position:absolute;z-index:2;top:9px;left:8px;right:8px;pointer-events:none;color:#f2f8f5;font-size:9px;text-shadow:0 1px 3px #080e11}
+.card .meta span{background:#131c22be;border-radius:3px;padding:2px 3px}
+.card .name{font-size:clamp(11px,1.35vw,16px);font-weight:900;line-height:1.12;letter-spacing:-.035em}
+.card .stats{color:#243336;font-weight:800;font-size:10px;letter-spacing:.02em}
+.card .skill{color:#32494b;font-size:9px}
+.card.unowned .portrait{filter:saturate(.6) brightness(.73) drop-shadow(0 2px 1px #101617c9)}
+.hand .card{aspect-ratio:.76}.hand .portrait{aspect-ratio:auto}
+.hand .cardbody{min-height:57px}
+.revealed .meta{color:#f2f8f5}
+dialog .portrait{background:radial-gradient(ellipse,#778b8b,#33444a 78%);padding:10px;filter:drop-shadow(0 4px 3px #0005)}
+.unit img{filter:drop-shadow(0 2px 2px #0008)}
+.pack-stage{background:radial-gradient(ellipse,#334a50,#172329 68%);border-color:#4b676b}
+.pack{background:repeating-linear-gradient(135deg,#ffffff09 0 1px,transparent 1px 9px),linear-gradient(135deg,#486268,#171f25 60%,#314449);border-color:#b4c9c9;box-shadow:0 0 25px #a3c5be47,inset 0 0 20px #cadad444}
+@media(max-width:600px){.card .name{font-size:12px}.hand .card .name{font-size:11px}.card .cardbody{min-height:66px}}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .card:hover{transform:perspective(760px) rotateX(var(--tilt-x,4deg)) rotateY(var(--tilt-y,-5deg)) translateY(-4px)}
+  .card .portrait{transition:translate .18s ease-out}
+  .card:hover .portrait{translate:var(--art-x,0px) var(--art-y,0px)}
+}
+
+/* Arena shell */
+:root{--mint:#a9f7e0;--gold:#dff8e9;--muted:#b5c6ca;--line:#40545b;--panel:#16242a}
+body{background:radial-gradient(ellipse at 62% -10%,#2a4950,transparent 49rem),#0c1419}
+header{background:#131f25f5}header>div{min-height:59px}.header-actions{display:flex;gap:12px;align-items:center}.audio-toggle{font-size:11px;padding:6px 9px}.balance{font-size:13px}nav button{border-radius:0;padding-inline:20px}
+main{padding-top:24px}.lobby{isolation:isolate;position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;min-height:470px;overflow:hidden;border:1px solid #63817f;border-radius:18px;background:radial-gradient(ellipse at 78% 46%,#4b7776bb,#1b313b 54%,#111d27 80%);box-shadow:0 20px 70px #0007,inset 0 1px #a5e2da4f}
+.lobby:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(122deg,transparent 63%,#accdc91a 63.2%,transparent 63.5%),linear-gradient(24deg,transparent 60%,#8ce6c72d 60.1%,transparent 60.35%);z-index:-1}.lobby-grid{position:absolute;inset:49% -15% -82%;z-index:-1;transform:perspective(320px) rotateX(45deg);transform-origin:top;background-image:linear-gradient(#93dedb23 1px,transparent 1px),linear-gradient(90deg,#93dedb23 1px,transparent 1px);background-size:45px 35px;mask-image:linear-gradient(#0006,#000,transparent 80%)}
+.lobby-copy{padding:clamp(22px,5vw,62px);z-index:1}.lobby h1{font-size:clamp(52px,8vw,108px);line-height:.9;letter-spacing:-.095em;color:#f4fbf7;text-shadow:0 8px 26px #07191f}.lobby .eyebrow{margin-bottom:21px}.lobby-copy p{color:#dbebe8;margin:23px 0 25px}.arena-start{display:inline-flex;justify-content:space-between;gap:24px;align-items:center;padding:14px 17px;border-radius:8px;background:linear-gradient(125deg,#defff0,#96d8c6);box-shadow:0 5px 22px #87dbc344}
+.showcase{position:relative;min-height:375px;perspective:880px;margin-right:18px}.showcase:after{content:"";width:75%;height:11%;position:absolute;left:10%;bottom:6%;background:#030b13aa;filter:blur(16px);border-radius:50%;z-index:-1}.showcase-card{position:absolute;width:39%;left:27%;top:12%;transform:translateX(var(--dx)) translateY(var(--dy)) rotate(var(--z)) rotateY(var(--y));animation:showcase-float 6s ease-in-out infinite;animation-delay:var(--delay);filter:drop-shadow(0 15px 19px #0008)}.showcase-0{--dx:-52%;--dy:15%;--z:-15deg;--y:16deg;--delay:-1s}.showcase-1{--dx:0%;--dy:0%;--z:-2deg;--y:-5deg;--delay:-3s;z-index:2}.showcase-2{--dx:56%;--dy:14%;--z:15deg;--y:-12deg;--delay:0s}.showcase-card .card{width:100%}.showcase-card .cardbody{min-height:63px}
+.lobby-menu{display:grid;grid-template-columns:1fr 1fr .56fr;gap:12px;margin-top:14px}.lobby-menu>button,.lobby-record{background:linear-gradient(145deg,#23373d,#142228);border:1px solid #435b60;border-radius:10px;padding:17px 15px;text-align:left;color:#eaf8f4}.lobby-menu>button{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}.lobby-menu>button:hover{border-color:#a9dfcc}.lobby-menu small{display:block;color:#bdcecf;margin-top:5px}.lobby-icon{display:grid;place-items:center;width:37px;height:37px;border:1px solid #587674;border-radius:7px;color:#a5ecd8;font-size:20px}.lobby-record>b{font-size:22px}.lobby-record>b span{font-size:13px;padding-left:3px}
+@keyframes showcase-float{50%{transform:translateX(var(--dx)) translateY(calc(var(--dy) - 12px)) rotate(var(--z)) rotateY(var(--y))}}
+
+/* Front, back and edge of the same card in the deck viewer. */
+dialog{width:min(880px,calc(100% - 28px));max-width:none;max-height:calc(100dvh - 20px);padding:0;background:linear-gradient(137deg,#263a43,#121c23 75%);border-color:#75918f;box-shadow:0 20px 100px #000d;overflow:auto}
+dialog::backdrop{background:#060e15db;backdrop-filter:blur(8px)}.icon-close{position:sticky;display:block;top:10px;margin:12px 12px 0 auto;z-index:5;width:36px;height:36px;border:1px solid #6a8386;border-radius:50%;background:#15242a;font-size:23px;line-height:1}
+.inspection{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr);align-items:center;gap:18px;padding:0 30px 30px}.inspection-view{min-width:0}.turntable{width:100%;height:clamp(245px,57vh,500px);perspective:1000px;display:grid;place-items:center;touch-action:none;cursor:grab;user-select:none;background:radial-gradient(ellipse,#5e8b8b6b,transparent 62%);border-radius:13px}.turntable.dragging{cursor:grabbing}
+.physical-card{position:relative;width:min(73%,calc(clamp(245px,57vh,500px) * .64));aspect-ratio:.71;transform-style:preserve-3d;transform:rotateX(var(--rx,-7deg)) rotateY(var(--ry,-16deg));transition:transform .36s cubic-bezier(.2,.7,.3,1)}
+.dragging .physical-card{transition:none}.physical-face,.physical-edge{position:absolute;inset:0;border-radius:10px}.physical-face{backface-visibility:hidden}.physical-front{transform:translateZ(4px)}.physical-front .card{height:100%;pointer-events:none;transform:none;box-shadow:0 8px 33px #0009}.physical-front .portrait{max-height:none}.physical-front .card .name{font-size:clamp(15px,2.5vw,24px)}.physical-front .card .stats,.physical-front .card .skill{font-size:12px}
+.physical-back{transform:rotateY(180deg) translateZ(4px);border:2px solid #95b2ad;display:grid;place-content:center;text-align:center;gap:12px;color:#ddffef;letter-spacing:.12em;font-size:18px;background:repeating-linear-gradient(125deg,transparent 0 12px,#b0d7d411 12px 13px),radial-gradient(ellipse,#375b60,#13232d 79%);box-shadow:inset 0 0 0 6px #243a41,inset 0 0 0 7px #7aa29d}.physical-edge{background:#647d7d;transform:scale(.99);box-shadow:0 0 0 1px #829093}.brand-seal{font-size:48px;line-height:1;color:#c5fdeb;text-shadow:0 0 16px #75ead6a8}.turntable-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--muted)}.turntable-controls .btn{font-size:12px;padding:7px 10px}.inspection-copy h2{font-size:clamp(23px,4vw,39px);line-height:1.11;margin:10px 0 18px;overflow-wrap:anywhere}.inspection-copy h3{margin-bottom:0}.inspection-copy p{margin-top:5px}.inspect-stats{display:flex;gap:8px}.inspect-stats>div{display:grid;background:#101b23;border:1px solid #456165;border-radius:6px;padding:8px 13px;gap:3px}.inspect-stats small{color:#b9cccc}.inspect-stats strong{font-size:21px}
+
+/* Pack reveal */
+.pack-heading,.arena-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:12px}.odds{text-align:right;font-size:12px;color:#c3d2d2;line-height:1.55}.pack-stage{isolation:isolate;position:relative;min-height:370px;perspective:880px;border-color:#68837b;background:radial-gradient(ellipse at 50% 56%,#3a6967,#172933 53%,#101a22 85%);box-shadow:inset 0 1px #c2f9ea33,0 18px 40px #0006;--pack-energy:#86f1ce}.rarity-2{--pack-energy:#c59cff}.rarity-3{--pack-energy:#ffd38a}
+.pack-portal{position:absolute;z-index:-1;width:min(76%,510px);aspect-ratio:1;border-radius:50%;border:1px solid color-mix(in srgb,var(--pack-energy) 38%,transparent);background:repeating-radial-gradient(circle,transparent 0 27px,#d2ffe218 28px 29px);transform:rotateX(63deg) translateY(105px);box-shadow:0 0 30px color-mix(in srgb,var(--pack-energy) 35%,transparent)}
+.pack{position:relative;display:grid;width:146px;height:216px;border:0;box-shadow:none;background:none;border-radius:0;transform:rotateY(-9deg) rotateZ(-5deg);animation:pack-idle 3.8s ease-in-out infinite}
+.pack-half{position:absolute;inset:0;border:1px solid #bed6cf;border-radius:9px;background:repeating-linear-gradient(126deg,transparent 0 10px,#c9ffde1c 10px 11px),linear-gradient(135deg,#99b6ac,#2e5056 27%,#151f2a 65%,#65827b);box-shadow:inset 0 6px #a2bcb366,inset 0 -6px #91b3ac66;z-index:-1}.pack-top{clip-path:polygon(0 0,100% 0,100% 47%,74% 54%,54% 47%,25% 54%,0 48%)}.pack-bottom{clip-path:polygon(0 48%,25% 54%,54% 47%,74% 54%,100% 47%,100% 100%,0 100%)}
+.pack-mark{display:grid;gap:9px;text-align:center;z-index:1}.pack .pack-mark b{color:#e8fff3;font-size:18px;line-height:1.15}.opening .pack{animation:pack-launch 1.28s both}.opening .pack-top{animation:tear-top 1.28s both}.opening .pack-bottom{animation:tear-bottom 1.28s both}.opening .pack-mark{animation:pack-mark 1.28s both}.pack-burst{position:absolute;width:min(55%,400px);aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff 0,color-mix(in srgb,var(--pack-energy) 75%,transparent) 16%,transparent 62%);animation:pack-flare 1.28s both}
+.revealed{z-index:1;padding:20px}.revealed.single{display:grid;grid-template-columns:minmax(110px,190px);justify-content:center}.revealed .card{animation:premium-reveal .65s cubic-bezier(.2,.7,.22,1) both;animation-delay:calc(var(--i) * 64ms);box-shadow:0 5px 25px color-mix(in srgb,var(--pack-energy) 26%,transparent)}.pack-actions{justify-content:center}.pack-actions .btn{padding-block:13px}
+@keyframes pack-idle{50%{transform:translateY(-11px) rotateY(8deg) rotateZ(3deg)}}
+@keyframes pack-launch{0%{transform:scale(.98) rotate(-5deg)}30%{transform:scale(1.14) rotate(5deg)}48%{transform:scale(1.02) rotate(-7deg)}68%{transform:scale(1.07) rotate(0)}100%{transform:scale(.85)}}
+@keyframes tear-top{0%,55%{transform:none;opacity:1}100%{transform:translate(30px,-145px) rotate(28deg);opacity:0}}
+@keyframes tear-bottom{0%,55%{transform:none;opacity:1}100%{transform:translate(-25px,115px) rotate(-19deg);opacity:0}}
+@keyframes pack-mark{0%,55%{opacity:1}75%,100%{opacity:0}}
+@keyframes pack-flare{0%,40%,100%{opacity:0;transform:scale(.25)}64%{opacity:1;transform:scale(1.15)}90%{opacity:0;transform:scale(1.65)}}
+@keyframes premium-reveal{0%{opacity:0;transform:translateY(36px) rotateY(145deg) scale(.82)}65%{opacity:1;transform:translateY(-7px) rotateY(-8deg) scale(1.04)}100%{transform:none}}
+
+/* Turn reveal, impact feedback and result */
+.arena-shell h1{font-size:clamp(26px,4.6vw,46px)}.arena-head{align-items:center}.round-meter{display:flex;gap:5px}.round-meter i{display:grid;place-items:center;width:24px;height:25px;border:1px solid #485d64;border-radius:4px;font-size:11px;font-style:normal;color:#a6bebe}.round-meter .now{background:#b8ead9;color:#182b2c;border-color:#d0fff1;font-weight:800}.round-meter .past{background:#2c4b50}
+.lanes{background:#0c171f;padding:7px;border:1px solid #62827d;border-radius:13px;box-shadow:0 12px 26px #0006}.lane{background:linear-gradient(180deg,#492d415c,#1b2d38 49%,#21484170);min-height:180px}.lane-title{background:#18272f;border-color:#53686e}.lane-score{background:#111e25;border-radius:4px;padding:4px 2px}.lane .units .unit{background:#15232b;border-color:#607d77;position:relative}.unit span{position:relative;padding:1px 0 2px}.unit span:after{content:"";position:absolute;left:0;bottom:0;height:2px;width:var(--hp);background:#98e7c8}.enemy .unit span:after{background:#ec9dba}
+.fresh-unit{animation:unit-entry .49s cubic-bezier(.2,.7,.23,1) both}.enemy .fresh-unit{--entry:-24px}.ally .fresh-unit{--entry:24px}.strike .unit{animation:arena-hit .48s both}.impact-fx{position:absolute;inset:35% 0 0;pointer-events:none;z-index:4}.impact-fx i{display:block;position:absolute;left:50%;top:13%;width:46%;aspect-ratio:1;transform-origin:center;border:2px solid #f2f8dc;border-radius:50%;animation:impact-ring .55s both}.impact-fx b{position:absolute;left:calc(12% + var(--j)*13%);top:35%;font-size:clamp(11px,2vw,17px);color:#a5fce0;text-shadow:0 2px 3px #050809,0 0 7px #24786a;white-space:nowrap;animation:damage-float .7s both;animation-delay:calc(var(--j)*25ms)}.impact-fx .change-1{color:#ffc9ad;text-shadow:0 2px 3px #050809,0 0 7px #953550}
+.arena-result{margin-top:12px;padding:14px;text-align:center;border:1px solid #829f9c;border-radius:7px;background:linear-gradient(125deg,#2b444e,#16232a);font-size:clamp(18px,4vw,28px);animation:premium-reveal .43s both}.result-win{background:linear-gradient(125deg,#1d5e51,#192c37);border-color:#bcfbe0}.result-loss{background:linear-gradient(125deg,#513040,#232b35);border-color:#c39aab}
+@keyframes unit-entry{from{opacity:0;transform:translateY(var(--entry)) scale(.66) rotateY(70deg)}70%{transform:translateY(-3px) scale(1.1);filter:brightness(1.45)}to{transform:none}}
+@keyframes arena-hit{25%{transform:translateY(-4px) scale(1.06);filter:brightness(2)}50%{transform:translateY(3px) rotate(-4deg)}}
+@keyframes impact-ring{from{opacity:.95;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(1.8)}}
+@keyframes damage-float{0%{opacity:0;transform:translateY(8px) scale(.85)}22%,65%{opacity:1}100%{opacity:0;transform:translateY(-38px)}}
+@media(max-width:680px){.lobby{grid-template-columns:1fr;min-height:0}.lobby-copy{padding-bottom:0}.lobby h1 br{display:none}.lobby h1{font-size:clamp(40px,11vw,67px)}.lobby-copy p{margin:13px 0 16px}.showcase{min-height:clamp(215px,64vw,320px);margin:0 17px}.showcase-card{width:min(37%,158px);left:calc(50% - min(18.5%,79px));top:6%}.showcase-card .cardbody{min-height:54px}.lobby-menu{grid-template-columns:1fr 1fr}.lobby-record{grid-column:span 2;display:flex;align-items:center;gap:9px;padding:8px 12px}.lobby-record small{margin:0}.lobby-menu>button{padding:9px;gap:7px}.lobby-icon{width:25px;height:27px}.lobby-menu>button>span:last-child{display:none}.inspection{grid-template-columns:1fr;gap:13px;padding:0 12px 18px}.inspection-copy h2{margin:7px 0 10px}.turntable{height:clamp(220px,42vh,360px)}.physical-card{width:min(73%,calc(clamp(220px,42vh,360px) * .61))}.pack-stage{min-height:302px}.lane{min-height:150px}}
+
+.lobby-menu{grid-template-columns:repeat(3,minmax(0,1fr))}
+.lobby-record{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.battle-versus{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:8px;color:#9ee5d6;font-weight:850}
+.battle-versus>*{padding:8px;background:#17262f;border-bottom:2px solid #5fa69a;border-radius:5px}
+.battle-versus b{background:#2e3b41;color:#efffef;border-color:#a3b5b1}
+.battle-versus span:last-child{text-align:right;color:#ffb7c7;border-color:#a76178}
+.arena-shell .lanes{position:relative;background:repeating-linear-gradient(110deg,#131f2b 0 26px,#14232f 27px 28px);gap:12px;padding:12px}
+.arena-shell .lane{min-height:220px;background:linear-gradient(180deg,#48293caa,#162432 50%,#174f4b8c);box-shadow:inset 0 0 30px #071018c2}
+.arena-shell .lane.adv{border-color:#80c7a7}.arena-shell .lane.behind{border-color:#b56c86}
+.skill-cut-in{pointer-events:none;position:fixed;z-index:9;left:50%;top:43%;width:min(720px,96vw);height:clamp(110px,25vh,190px);display:flex;align-items:center;gap:12px;isolation:isolate;transform:translate(-50%,-50%);animation:skill-sweep .43s both;color:#effffd;text-shadow:0 2px 8px #05111c;border-block:2px solid #a4ffe5;background:linear-gradient(110deg,#236c73fc,#142431f5 76%);box-shadow:0 0 40px #76efcd7a}
+.skill-cut-in.skill-side-1{border-color:#ffb0c4;background:linear-gradient(110deg,#673345,#241728 76%);box-shadow:0 0 40px #f18bad6b}
+.skill-flare{position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(119deg,transparent 0 28px,#fff2 29px 30px);mask-image:linear-gradient(90deg,black,transparent)}
+.skill-cut-in img{width:33%;height:112%;object-fit:contain;filter:drop-shadow(0 5px 12px #0009)}
+.skill-cut-in span,.skill-cut-in small{display:block;font-weight:800;overflow-wrap:anywhere}.skill-cut-in strong{display:block;font-size:clamp(22px,6vw,52px);line-height:1.1;letter-spacing:-.06em}
+@keyframes skill-sweep{0%{transform:translate(-85%,-50%) skewX(-9deg);opacity:0}22%,76%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(-23%,-50%);opacity:0}}
+.online-panel{border:1px solid #52696f;border-radius:13px;padding:20px;background:linear-gradient(135deg,#20383f,#111c26);min-height:220px}
+.online-panel form{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.online-panel label{display:grid;gap:5px}.online-panel textarea{font:inherit;color:inherit;border:1px solid #637985;border-radius:6px;background:#101a22;padding:8px;width:min(450px,73vw)}
+.online-panel .online-list{padding-left:21px}.online-list li{list-style:none;display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #ffffff20}.online-list li span{margin-left:auto;color:#bfd3cd;font-size:12px}
+.online-avatar{width:36px;height:36px;object-fit:contain;border:2px solid #94e3ce;border-radius:50%;background:#121a28}.frame-violet{border-color:#c599ff}.frame-amber{border-color:#f3bf68}
+.profile-card{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+@media(max-width:620px){.lobby-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.arena-shell .lanes{padding:5px;gap:5px}.arena-shell .lane{min-height:165px}.battle-versus{font-size:11px}nav button{padding-inline:8px}}
+.turn-clock{font-variant-numeric:tabular-nums;background:#2e3944;border:1px solid #6c8289;border-radius:6px;padding:5px 10px;color:#f5e4ad}
+@keyframes skill-sweep{0%{transform:translate(-85%,-50%) skewX(-9deg);opacity:0}20%,82%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(-23%,-50%);opacity:0}}
+.skill-cut-in{animation-duration:.54s}
+.arena-loading{position:fixed;inset:0;z-index:30;display:grid;place-items:center;text-align:center;background:radial-gradient(ellipse,#265f88,#101f45 56%,#080f21);color:#fff}.arena-loading span{font-size:76px;color:#80e7ce}.load-track{height:8px;margin:20px auto;width:85%;overflow:hidden;border-radius:8px;background:#0b182e}.load-track i{display:block;background:#80e7ce;height:100%;animation:arena-load .95s linear both}@keyframes arena-load{from{width:0}to{width:100%}}
+.welcome-body{padding:24px}.welcome-body form,.welcome-body label{display:grid;gap:10px}.welcome-body select{width:100%}.card-record{display:flex;gap:10px;margin-top:12px}.serials{overflow-wrap:anywhere}.turn-clock{font-weight:800}
+.rating-summary,.rank-list li,.market-list li{background:#122f47;border:1px solid #335e78;border-radius:9px;padding:13px;color:#e9f5ff}.rating-summary{display:flex;align-items:center;gap:10px;border-left:4px solid #80e7ce}.rating-summary span{margin-left:auto}.rank-tools input{flex:1}.online-list.rank-list,.online-list.market-list{padding:0;display:grid;gap:8px}.rank-list .position{min-width:28px;color:#e1efff}.online-list small{display:block;color:#a7c1da}.rank-list strong{display:block;margin-top:7px;font-size:18px}.online-avatar{display:inline-grid;flex:none;place-items:center;color:#8fe4e1}.market-art{width:52px;height:52px;object-fit:contain}.market-list li>strong{margin-left:auto}.market-list li div{min-width:0;overflow-wrap:anywhere}
+.queue-head{display:flex;justify-content:space-between;align-items:center;background:#172d4f;padding:13px 16px;color:#f6fbff;border-radius:12px 12px 0 0}.queue-head span{font-size:12px}.queue-field{display:flex;flex-direction:column;align-items:center;gap:22px;padding:36px 12px 48px;background:radial-gradient(circle,#3067ca,#25439d 58%,#272d76);border:2px solid #101a40;border-radius:0 0 12px 12px;text-align:center;color:#f5f8ff}.queue-box,.queue-tip{width:min(93%,580px);padding:24px;border-radius:15px;background:#152f57}.queue-tip{width:min(95%,650px);border:1px solid #85c6dd}.queue-tip p,.queue-box p{color:#dce8ff;margin-bottom:0}.queue-label{font-size:11px;letter-spacing:.22em}.queue-seats{display:flex;justify-content:center;gap:8px;margin:15px}.queue-seats b{border:1px solid #83ceed;padding:10px 13px;border-radius:10px}.queue-seats b+b{border-style:dashed}.queue-cancel{min-width:168px;background:#30598e}.queue-bars{display:flex;justify-content:center;align-items:center;gap:4px;height:31px;margin-bottom:22px}.queue-bars i{display:block;width:5px;height:23px;background:#deb757;border-radius:3px;animation:queue-pulse .8s alternate infinite}.queue-bars i:nth-child(2){animation-delay:.15s}.queue-bars i:nth-child(3){animation-delay:.3s}@keyframes queue-pulse{from{transform:scaleY(.4);opacity:.6}}
+.arena-shell .lanes{padding:14px;box-shadow:inset 0 0 55px #030712,0 0 25px #4c95a833;background:radial-gradient(ellipse,#254755,#071625 78%)}.arena-shell .lane{border:2px solid #456879;background:linear-gradient(#522b43,#172b40 48%,#164849);display:flex;flex-direction:column;justify-content:space-between}.arena-shell .lane-score{font-weight:800;border-block:1px solid #87b7c950}.arena-shell .units .unit{box-shadow:0 3px 7px #000a}.arena-shell .hand{background:#111c2e;padding:9px;border-radius:8px}
+
+/* Lobby chassis and shared panels */
+body{background:radial-gradient(ellipse at 47% 6%,#2d5892 0,#162d57 46%,#101b34 100%);background-attachment:fixed}
+header{max-width:1180px;margin:14px auto 0;border:2px solid #081528;border-radius:16px;background:#132645;box-shadow:0 5px #081528}
+header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius:0 0 14px 14px;overflow:auto}nav button{white-space:nowrap;color:#e7f6ff}
+.balance{background:#ffd350;color:#172037;padding:7px 11px;border-radius:9px}.lobby{min-height:390px;background:radial-gradient(ellipse at 64% 40%,#356c98,#213c70 56%,#18264d);border:2px solid #081728;box-shadow:0 5px #081728}
+.lobby-menu>button,.lobby-record,.online-panel,.deck-tray{background:#143451;border:1px solid #396687;box-shadow:0 3px #0e213b;color:#f4f9ff}
+.lobby-menu>button:hover,.deck-slot[aria-pressed=true]{border-color:#7bedd8;background:#17607a}
+.btn{background:#244b77;border-color:#3f7398;color:#f4f9ff}.btn.primary{background:#76e3cb;color:#142a3b;border-color:#85f1dc}
+.deck-tray{padding:12px;border-radius:12px;position:sticky;top:0;z-index:3}.deck-tray .toolbar{margin:0 0 8px}.deck-tray p{font-size:12px;margin:9px 0 0}.deck-tray #deck-slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.deck-slot{display:grid;gap:4px;min-width:0;text-align:left;padding:8px;overflow-wrap:anywhere}.deck-slot small{color:#a8e5f7}.deck-slot b{font-size:11px}.deck-card-cell{display:grid;gap:5px;align-content:start}.deck-quick{padding:5px;font-size:12px}
+.locked-card{min-height:72px;border:1px solid #365575;border-radius:9px;background:#102743;padding:11px;display:grid;gap:5px;color:#c4d5e5;overflow-wrap:anywhere}.locked-card small{color:#9fbada}
+.serial-list{display:grid;gap:6px;max-height:155px;overflow:auto;list-style:none;padding:0}.serial-list li{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#101f3b;border:1px solid #43708d;border-radius:8px;padding:5px 9px}.serial-list strong{font-size:22px;color:#ffe37e;font-variant-numeric:tabular-nums}.serial-list span{font-size:12px;color:#c2e0ea}
+.lane-title.lane-ready{background:#234f76;border:2px solid #72f1d9;color:#e7fff9;box-shadow:0 0 10px #63f0d598;animation:lane-glow 1.15s ease-in-out infinite alternate}.lane-title.lane-ready[aria-pressed=true]{background:#8feeda;color:#11283c}.battle-announcement{position:fixed;top:43%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;background:linear-gradient(105deg,#1b3671,#245c8e,#1b3671);color:#f6fff8;padding:12px 32px;border-block:2px solid #96e7ea;font-size:clamp(20px,5vw,48px);font-weight:1000;white-space:nowrap;text-shadow:0 3px #0b1930;animation:turn-card .65s both}
+@keyframes lane-glow{to{box-shadow:0 0 20px #63f0d5cf}}
+@keyframes turn-card{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}28%,78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-55%)}}
+@media(max-width:650px){.deck-tray #deck-slots{grid-template-columns:repeat(3,minmax(0,1fr))}.deck-tray .toolbar{gap:5px}.deck-tray .btn{padding:5px 7px}header{margin:0}nav{gap:0}}
+@media(prefers-reduced-motion:reduce){.lane-title.lane-ready{animation:none}}
+
+#ai-coins:empty{display:none}
+#ai-coins{color:#8df1d7}
+.home-tools,.home-tabs,.home-play{display:grid;gap:12px;margin:14px 0}
+.home-tools{grid-template-columns:repeat(2,1fr)}
+.home-tabs{grid-template-columns:repeat(5,1fr);gap:1px;background:#315978}
+.home-tools button,.home-tabs button,.home-showcase aside button{background:#153550;border:1px solid #315d7d;padding:14px 8px;font-weight:800}
+.home-tabs button{padding-block:18px}
+.home-showcase{display:grid;grid-template-columns:auto 1fr;align-items:center;min-height:clamp(330px,48vw,570px);border:1px solid #315978;border-radius:8px;overflow:hidden;background:linear-gradient(133deg,#102a42 0%,#173c56 68%,#1a4f78 68% 78%,#183e56 78% 87%,#3b495f 87% 93%,#174459 93%)}
+.home-showcase aside{display:grid;gap:9px}
+.home-showcase aside button{border-left:3px solid var(--mint);border-radius:0 5px 5px 0}
+.home-fighter{display:grid;grid-template-columns:1fr 1.15fr;align-items:center;gap:16px;padding:clamp(12px,5vw,72px)}
+.home-fighter h1{margin-top:12px;font-size:clamp(23px,4vw,58px);overflow-wrap:anywhere}
+.home-art{display:grid;place-items:center;background:radial-gradient(ellipse,#77d3f22c,transparent 67%);border:0;width:100%;padding:0}
+.home-art img{width:100%;height:clamp(150px,34vw,425px);object-fit:contain;filter:drop-shadow(0 16px 15px #00142399)}
+.home-play{grid-template-columns:1.5fr 1fr}
+.home-play label{display:grid;gap:4px;background:#143653;border-left:3px solid var(--mint);padding:10px 16px}
+.home-play select{width:100%;font-weight:850;padding:5px 8px}
+.home-play button{border:0;background:#ff5e6d;color:#101d30;font-size:clamp(19px,4vw,38px);font-weight:950;clip-path:polygon(7% 0,100% 0,93% 100%,0 100%)}
+.back-serial{font-size:clamp(25px,5vw,49px);font-variant-numeric:tabular-nums;color:#fff2ce;text-shadow:0 2px 15px #d6994d;line-height:1.1}
+.copies-panel{margin:10px 0}.copies-panel summary{cursor:pointer;font-weight:800;color:var(--mint)}
+.copy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-top:8px}
+.copy-card{display:grid;justify-items:center;min-width:0;padding:5px;border:1px solid #456483;background:#122d47;border-radius:7px}
+.copy-card img{width:100%;height:58px;object-fit:contain}.copy-card b{font-size:21px;overflow-wrap:anywhere}.copy-card small{color:#c2d3e2}
+@media(max-width:580px){.home-showcase{min-height:290px}.home-fighter{gap:4px}.home-tabs button{font-size:11px;padding-inline:3px}.home-showcase aside button{font-size:11px}}
+.card .meta span:empty{display:none}.card .meta{justify-content:flex-end}
+
+.home-art{perspective:950px;background:radial-gradient(ellipse,#5adde23c,transparent 65%);min-width:0}
+.home-art>.card{width:min(100%,275px);margin:auto;box-shadow:0 24px 40px #05111bc9,0 0 40px #4fe3df26}
+.home-art .card .portrait{height:auto;aspect-ratio:1;filter:none}
+.home-art>.card:hover{box-shadow:0 24px 45px #001019bd,0 0 48px #59eae855}
+.card .meta .front-serial{font-size:clamp(14px,2vw,23px);font-weight:950;letter-spacing:.025em;color:#fdf8d9;background:#06192aeb;border:1px solid #a7efea8f;border-radius:6px;padding:3px 7px;box-shadow:0 4px 12px #04141bcc}
+.sub-head{display:grid;gap:12px;align-items:start;justify-items:start;padding:clamp(16px,4vw,35px);margin-bottom:18px;border:1px solid #3b7090;border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#28779b5c,transparent 65%),linear-gradient(125deg,#10283c,#16415b);box-shadow:inset 0 1px #9eefe323,0 10px 24px #06141e66}
+.sub-head p{margin:0}
+.copy-gallery{grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr))}
+.copy-tile{align-self:start}.copy-tile>small{display:block;color:#b5e2ed;padding:7px 2px}
+.deck-empty{min-height:60px;border-style:dashed}
+.online-panel,.deck-tray,.pack-stage,.arena-shell{box-shadow:inset 0 1px #a6eefe30,0 12px 30px #00131f65}
+.sub-head.panel-market{background:linear-gradient(125deg,#132b3e,#58432f)}
+.sub-head.panel-rank{background:linear-gradient(125deg,#162844,#304f85)}
+.sub-head.panel-friends{background:linear-gradient(125deg,#152d3d,#21655d)}
+.sub-head.panel-request{background:linear-gradient(125deg,#132b3e,#4c396d)}
+.sub-head.panel-profile{background:linear-gradient(125deg,#102e45,#274b64)}
+.home-showcase,.sub-head,.online-panel,.copy-gallery,.arena-result{animation:panel-entry .24s ease-out both}
+@keyframes panel-entry{from{opacity:0;translate:0 7px}to{opacity:1;translate:0 0}}
+.home-play button:hover:enabled{background:#ff8290;filter:drop-shadow(0 0 10px #ff687b)}
+.home-tools button:hover,.home-tabs button:hover,.online-list li:hover{border-color:#7ef3d9;background-color:#204763}
+header[hidden]{display:none!important}
+
+.cardbody .name{display:block;min-width:0;max-width:100%;overflow:hidden;container-type:inline-size;white-space:nowrap}
+.cardbody .name > .name-text{display:inline-block;width:max-content;max-width:none;white-space:nowrap;animation:card-name-pan 12s ease-in-out infinite}
+@keyframes card-name-pan{0%,14%,100%{transform:translateX(0)}50%,64%{transform:translateX(min(0px,calc(100cqw - 100%)))}}
+.inspection-copy h2{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){.cardbody .name>.name-text{animation:none}.cardbody .name{text-overflow:ellipsis}.cardbody .name>.name-text{display:inline}}
+
+.card .art-field{position:relative}
+.card .art-field .front-serial,.physical-back .back-serial{
+  color:#f5e5ad;font-weight:900;letter-spacing:.09em;
+  text-shadow:0 -1px 0 #2b2319,0 1px 0 #fff3c590,0 0 7px #ffc76e70;
+  font-variant-numeric:tabular-nums;
+}
+.card .art-field .front-serial{position:absolute;z-index:2;right:7%;bottom:5%;font-size:clamp(9px,1.4vw,17px);pointer-events:none}
+.home-card-motion{width:min(100%,275px);animation:home-card-sway 8s ease-in-out infinite;transform-style:preserve-3d}
+.home-card-motion .card{box-shadow:0 24px 40px #05111bc9,0 0 40px #4fe3df26}
+.home-card-motion:hover,.home-card-motion:focus-within{animation-play-state:paused}
+@keyframes home-card-sway{0%,100%{transform:rotateY(-8deg) rotateX(2deg)}50%{transform:rotateY(8deg) rotateX(-2deg)}}
+.public-profile-card{display:block;width:68px;flex:0 0 68px;min-width:0}
+.public-profile-card .cardbody{padding:3px;min-height:0}
+.public-profile-card .name{font-size:9px}
+.public-profile-card .meta,.public-profile-card .stats,.public-profile-card .skill{display:none}
+.public-profile-card .card .front-serial{font-size:8px}
+.profile-card .public-profile-card{width:104px;flex-basis:104px}
+@media(prefers-reduced-motion:reduce){.home-card-motion{animation:none}}
+
+</style></head>
+<body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button></nav></header>
+<div id="arena-loading" class="arena-loading"><div><span>◇</span><h1>릴라고 카드 아레나</h1><div class="load-track"><i></i></div><p>아레나 입장 중</p></div></div><dialog id="welcome"><div class="welcome-body"><h2>프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" maxlength="20" required></label><label>프로필 테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">입장</button><p id="welcome-status" role="status"></p></form></div></dialog><main id="main"></main><dialog id="detail"></dialog><dialog id="music-settings"></dialog>
+<script>
+const cards = /* CARD_DATA */;
+const tiers=['일반','희귀','전설'];
+let featuredId=null, featuredCopy=null;
+try{const featured=JSON.parse(localStorage.getItem('lilago-featured-card'));featuredId=featured?.card??featured;featuredCopy=featured?.copy??null;}catch{}
+const zones=['왼쪽','가운데','오른쪽'];
+const starter=[6,11,25,30,41,48];
+const saveKey='lilago-card-arena-v1';
+function load(){
+  const fresh={coins:600,owned:starter,deck:starter,wins:0,stats:{}};
+  try {
+    const data=JSON.parse(localStorage.getItem(saveKey));
+    if(!data)return fresh;
+    const owned=[...new Set([...starter,...data.owned.filter(id=>cards[id])])];
+    const deck=[...new Set(data.deck.filter(id=>Number.isInteger(id)&&cards[id]))];
+    return {coins:Number.isSafeInteger(data.coins)&&data.coins>=0?data.coins:600,owned,deck:deck.length===6?deck:starter,wins:Number.isSafeInteger(data.wins)?data.wins:0,stats:data.stats||{},copies:data.copies||{},deckCopies:data.deckCopies||{}};
+  }catch{return fresh;}
+}
+let profile=load(), match=null, tab='battle', draft=[...profile.deck], query='', packResults=[], opening=false;
+const main=document.querySelector('#main'), detail=document.querySelector('#detail');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function save(){try{localStorage.setItem(saveKey,JSON.stringify(profile));return true;}catch{return false;}}
+function shuffle(list){const copy=[...list];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
+const effectText={
+revive:n=>`처음 쓰러질 때 체력 ${n}으로 한 번 부활.`,splash:n=>`일반 공격 때 인접 구역의 맨 앞 적에게 각각 ${n} 피해.`,burn:n=>`배치 시 맞은편 맨 앞 적에게 화상. 해당 턴과 다음 턴 공격 후 ${n} 피해.`,finisher:n=>`체력이 절반 이하인 적에게 일반 공격 피해 +${n}.`,cleave:n=>`일반 공격 때 같은 구역의 두 번째 적에게 ${n} 피해.`,rally:n=>`배치 시 자신을 제외한 아군 전체의 공격력 +${n}.`,ambush:n=>`배치 시 맞은편 맨 앞 적에게 ${n} 피해.`,pull:n=>`맞은편이 비어 있으면 인접 구역의 맨 앞 적 하나를 끌어옴. 맞은편 적에게 ${n} 피해.`,armor:n=>`받는 일반 공격 피해 ${n} 감소.`,growth:n=>`생존한 턴이 끝날 때마다 공격력 +${n}.`,laststand:n=>`턴 시작 공격 계산 시 체력이 절반 이하면 공격력 +${n}.`,retort:n=>`일반 공격에 맞으면 공격자에게 ${n} 반격 피해.`,stagger:n=>`배치한 턴에 맞은편 맨 앞 적의 공격력 ${n} 감소.`,bond:n=>`다른 아군이 같은 구역에 있으면 일반 공격 피해 +${n}.`,push:n=>`배치 시 맞은편 맨 앞 적에게 ${n} 피해 후 인접 구역으로 밀어냄.`,ward:n=>`배치 시 인접 구역 아군 전체와 자신에게 보호막 ${n}.`,pierce:n=>`일반 공격에 보호막을 무시하는 ${n} 추가 피해.`,heavies:n=>`최대 체력 90 이상인 적에게 일반 공격 피해 +${n}.`,empty:n=>`맞은편에 적이 없으면 인접 구역 맨 앞 적 하나에게 ${n} 피해.`,weaken:n=>`배치 시 같은 구역 적 전체의 공격력 ${n} 감소.`,guard:n=>`배치 시 자신의 보호막 +${n}.`,flank:n=>`바깥 구역에서 일반 공격 피해 +${n}.`,heal:n=>`배치 시 다른 아군 중 가장 많이 다친 카드 하나의 체력 ${n} 회복.`,solo:n=>`같은 구역에 혼자 있으면 일반 공격 피해 +${n}.`,veil:n=>`처음 받는 피해를 최대 ${n}만큼 감소.`,aid:n=>`배치 시 자신과 인접 구역 아군의 체력 ${n} 회복.`,swap:n=>`배치 시 자기 구역과 인접 구역의 맨 앞 적을 교환하고 새 맞은편 맨 앞 적에게 ${n} 피해.`,echo:n=>`턴 3부터 일반 공격에 분신 피해 ${n} 추가.`,snack:n=>`생존한 턴이 끝날 때마다 체력 ${n} 회복.`,combo:n=>`두 번째 일반 공격마다 피해 +${n}.`,drain:n=>`일반 공격이 체력을 깎으면 자신이 최대 ${n} 회복.`,lock:n=>`배치 시 맞은편 맨 앞 적의 이동을 이번 턴 막고 ${n} 피해.`,beat:n=>`1·3·5턴 일반 공격 피해 +${n}.`,taunt:n=>`배치 즉시 내 구역의 맨 앞에 서고 보호막 ${n} 획득.`
+};
+const desc=c=>effectText[c.fx](c.n);
+function cardHTML(c,{action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id}={}){
+  return `<button type="button" class="card ${extra}" style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="">${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}</span><span class="cardbody"><span class="meta"><span></span><span>${sub.startsWith('#')?'':sub}</span></span><span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
+}
+function showDetail(id, copyIndex){
+  const c=cards[id];
+  const owned=ownsCard(id);
+  const local=profile.stats?.[id], ranked=onlineProfile?.stats?.[id];
+  if(!owned&&tab==='collection'&&!canViewAllCards())return;
+  const copies=cardCopies(id);
+  const copy=copies[copyIndex]||copies.find(unit=>unit.serial);
+  const serial=copy?.serial?'#'+copy.serial:'';
+  const selected=draft.includes(id);
+  const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'사본 변경':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
+  detail.innerHTML=`<button class="icon-close" id="close-detail" aria-label="닫기">×</button>
+  <div class="inspection"><div class="inspection-view"><div class="turntable" tabindex="0" role="group" aria-label="카드 회전. 방향키 또는 드래그로 돌리기" data-turntable>
+  <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial})}</div><div class="physical-face physical-back">${seal}${serial?`<strong class="back-serial">${serial}</strong>`:''}</div><div class="physical-edge"></div></div>
+  </div><div class="turntable-controls"><span>마우스를 올려 회전 · 드래그로 뒤집기</span><button class="btn" id="flip-card">앞뒤 보기</button><button class="btn" id="reset-card">정면</button></div></div>
+  <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2><div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${deckAction}</div></div>`;
+  const stage=detail.querySelector('[data-turntable]');
+  const face=stage.querySelector('.card');
+  face.removeAttribute('data-detail');face.tabIndex=-1;face.setAttribute('aria-hidden','true');
+  let x=-7,y=-16,drag=null;
+  const rotate=()=>{
+    stage.style.setProperty('--rx',x+'deg');
+    stage.style.setProperty('--ry',y+'deg');
+  };
+  rotate();
+  stage.addEventListener('pointerdown',e=>{
+    if(drag||e.button!==0)return;
+    drag={x:e.clientX,y:e.clientY,id:e.pointerId};
+    stage.setPointerCapture(e.pointerId);stage.classList.add('dragging');
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!drag){
+      if(e.pointerType==='mouse'&&!reduced){
+        const bounds=stage.getBoundingClientRect();
+        const horizontal=(e.clientX-bounds.left)/bounds.width-.5;
+        const vertical=(e.clientY-bounds.top)/bounds.height-.5;
+        stage.style.setProperty('--rx',(x-vertical*32)+'deg');
+        stage.style.setProperty('--ry',(y+horizontal*100)+'deg');
+      }
+      return;
+    }
+    if(e.pointerId!==drag.id)return;
+    y=(y+(e.clientX-drag.x)*.8)%360;
+    x=Math.max(-75,Math.min(75,x-(e.clientY-drag.y)*.6));
+    drag.x=e.clientX;drag.y=e.clientY;rotate();
+  });
+  stage.addEventListener('pointerleave',()=>{if(!drag)rotate();});
+  stage.addEventListener('lostpointercapture',()=>{drag=null;stage.classList.remove('dragging');});
+  stage.addEventListener('keydown',e=>{
+    const arrows={ArrowLeft:[0,-20],ArrowRight:[0,20],ArrowUp:[20,0],ArrowDown:[-20,0]};
+    if(!arrows[e.key])return;
+    e.preventDefault();
+    const [dx,dy]=arrows[e.key];x=Math.max(-75,Math.min(75,x+dx));y+=dy;rotate();
+  });
+  detail.querySelector('#flip-card').onclick=()=>{y+=180;x=0;rotate();};
+  detail.querySelector('#reset-card').onclick=()=>{x=0;y=0;rotate();};
+  if(!detail.open)detail.showModal();
+}
+function updateHeader(){
+  const toggle=document.querySelector('#audio-toggle');
+  toggle.setAttribute?.('aria-pressed',String(soundOn));
+  toggle.textContent=soundOn?'효과음 켜짐':'효과음 꺼짐';
+  document.querySelector('#ai-coins').textContent=onlineProfile&&!onlineProfile.sharedPracticeWallet?`연습 ${profile.coins.toLocaleString()} 코인`:'';
+  document.querySelector('#coins').textContent=`◈ ${(onlineProfile?.coins??profile.coins).toLocaleString()} 코인`;
+  document.querySelectorAll('[data-tab]').forEach(b=>{b.toggleAttribute('aria-current',b.dataset.tab===tab&&(!b.dataset.panel||b.dataset.panel===onlinePanel));});
+}
+function render(){document.querySelector('header').hidden=tab==='matching'||(tab==='battle'&&!!match);updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured,matching:renderMatching})[tab]();}
+const seal='<span class="brand-seal" aria-hidden="true">◇</span><b>릴라고<br>카드 아레나</b>';
+let audio=null,soundOn=false;
+try{soundOn=localStorage.getItem('lilago-card-audio')==='on';}catch{}
+function playSound(kind){
+  if(!soundOn||!globalThis.AudioContext)return;
+  try{
+    audio??=new AudioContext();
+    if(audio.state==='suspended')void audio.resume().catch(()=>{});
+    const tones={open:[82,146,220],reveal:[330,440,660],strike:[140,60],win:[262,330,392,523],deploy:[196,294]}[kind];
+    tones.forEach((tone,i)=>{
+      const oscillator=audio.createOscillator(),gain=audio.createGain();
+      const time=audio.currentTime+i*.075;
+      oscillator.type=kind==='strike'?'triangle':'sine';
+      oscillator.frequency.setValueAtTime(tone,time);
+      gain.gain.setValueAtTime(.0001,time);
+      gain.gain.exponentialRampToValueAtTime(.055,time+.025);
+      gain.gain.exponentialRampToValueAtTime(.0001,time+.23);
+      oscillator.connect(gain).connect(audio.destination);
+      oscillator.start(time);oscillator.stop(time+.24);
+    });
+  }catch{}
+}
+function renderPack(){
+  const result=packResults.map(({id,duplicate,serial},idx)=>cardHTML(cards[id],{idx,sub:serial?'#'+serial:duplicate?'중복 카드':'신규'})).join('');
+  main.innerHTML=`<section class="pack-heading"><div><div class="eyebrow">카드 팩</div><h1>카드 뽑기</h1></div><div class="odds">뽑은 카드 모두 인벤토리에 저장</div></section>
+  <section class="pack-stage ${opening?'opening':''}" aria-live="polite">
+  <div class="pack-portal" aria-hidden="true"></div>
+  ${result&&!opening?`<div class="grid revealed ${packResults.length===1?'single':''}">${result}</div>`:`<div class="pack"><div class="pack-half pack-top"></div><div class="pack-half pack-bottom"></div><div class="pack-mark">${seal}</div></div>`}
+  ${opening?'<span class="pack-burst" aria-hidden="true"></span>':''}</section>
+  ${onlineMessage?`<p role="status">${escapeHTML(onlineMessage)}</p>`: ''}<div class="toolbar pack-actions"><button class="btn primary" data-draw="1" ${opening||(!onlineBase.startsWith('http')||onlineProfile)&&(onlineProfile?.coins??profile.coins)<100?'disabled':''}>1장 뽑기 · 100</button><button class="btn" data-draw="10" ${opening||(!onlineBase.startsWith('http')||onlineProfile)&&(onlineProfile?.coins??profile.coins)<900?'disabled':''}>10장 뽑기 · 900</button>${onlineProfile&&!onlineProfile.sharedPracticeWallet?`<button class="btn" data-ai-draw="1" ${opening||profile.coins<100?'disabled':''}>연습 코인으로 1장 · 100</button><button class="btn" data-ai-draw="10" ${opening||profile.coins<900?'disabled':''}>연습 코인으로 10장 · 900</button>`:''}</div>`;
+}
+function draw(count, local=false){
+  if(opening)return;
+  if(onlineBase.startsWith('http')){
+    if(!token){
+      const welcome=document.querySelector('#welcome');
+      if(!welcome.open)welcome.showModal();
+      return;
+    }
+    void drawOnline(count);
+    return;
+  }
+  const price=count===10?900:100;
+  if(opening||profile.coins<price)return;
+  profile.coins-=price;
+  packResults=Array.from({length:count},()=>{
+    const roll=Math.random();
+    const pool=cards.filter(c=>c.rar===(roll<.6?1:roll<.92?2:3));
+    const id=pool[Math.floor(Math.random()*pool.length)].id;
+    const duplicate=profile.owned.includes(id);
+    profile.copies??={};profile.copies[id]=(profile.copies[id]||(duplicate?1:0))+1;
+    if(!duplicate)profile.owned.push(id);
+    return {id,duplicate};
+  });
+  save();opening=true;render();playSound('open');
+  setTimeout(()=>{opening=false;if(tab==='pack'){renderPack();playSound('reveal');}},reduced?10:1280);
+}
+function cardCopies(id){
+  const issued=onlineProfile?.inventory.filter(u=>u.card===id)||[];
+  const localCopies=onlineProfile?.starters?(onlineProfile.starters.includes(id)?1:0):profile.copies?.[id]||(profile.owned.includes(id)?1:0);
+  return [...Array.from({length:localCopies},(_,i)=>({id:"basic-"+i})),...issued];
+}
+function ownsCard(id){return cardCopies(id).length>0;}
+let replaceSlot=null, draftCopies={...profile.deckCopies};
+const copyLabel=unit=>unit?.serial?'#'+unit.serial:'';
+function equippedCopy(id,key){
+  const copies=cardCopies(id);
+  return copies.find(unit=>unit.id===key)||copies.find(unit=>unit.serial)||copies[0];
+}
+function equipDeckCopy(id,key){
+  if(!cardCopies(id).some(unit=>unit.id===key))return false;
+  if(!draft.includes(id)){
+    if(replaceSlot!==null&&replaceSlot<draft.length){delete draftCopies[draft[replaceSlot]];draft[replaceSlot]=id;}
+    else if(draft.length<6)draft.push(id);
+    else return false;
+  }
+  draftCopies[id]=key;
+  replaceSlot=null;
+  return true;
+}
+function selectCopy(id,mode){
+  if(detail.open)detail.close();
+  copySubject=id;copyReturn=tab;copyMode=mode;tab='copies';render();
+}
+function setDeckCard(id){
+  const old=draft.indexOf(id);
+  if(old>=0){draft.splice(old,1);delete draftCopies[id];replaceSlot=null;}
+  else if(ownsCard(id)&&replaceSlot!==null&&replaceSlot<draft.length){draft[replaceSlot]=id;replaceSlot=null;}
+  else if(ownsCard(id)&&draft.length<6)draft.push(id);
+  else return;
+  collectionGrid();
+}
+function canViewAllCards(){return onlineProfile?.canViewAllCards===true;}
+function collectionGrid(){
+  const matching=cards.filter(c=>c.name.toLowerCase().includes(query.toLowerCase()));
+  const owned=matching.filter(c=>ownsCard(c.id));
+  const missing=canViewAllCards()?matching.filter(c=>!ownsCard(c.id)):[];
+  const renderCards=list=>list.map(c=>{
+    const count=cardCopies(c.id).length;
+    if(!count)return `<div class="deck-card-cell">${cardHTML(c,{sub:'미보유'})}</div>`;
+    return `<div class="deck-card-cell">${cardHTML(c,{extra:draft.includes(c.id)?'selected':'',sub:count+'장'})}<button class="btn deck-quick" data-deck="${c.id}" ${draft.length===6&&!draft.includes(c.id)&&replaceSlot===null?'disabled':''}>${draft.includes(c.id)?'사본 변경':replaceSlot!==null?'교체':'넣기'}</button>${draft.includes(c.id)?`<button class="btn deck-quick" data-remove-card="${c.id}">빼기</button>`:''}</div>`;
+  }).join('')||'<p>해당하는 카드가 없어.</p>';
+  const section=(title,list)=>`<section aria-label="${title}"><h2>${title} (${list.length})</h2><div class="grid">${renderCards(list)}</div></section>`;
+  document.querySelector('#collection-grid').innerHTML=section('보유 카드',owned)+(canViewAllCards()?section('미보유 카드',missing):'');
+  document.querySelector('#deck-slots').innerHTML=Array.from({length:6},(_,i)=>draft[i]===undefined
+    ? `<button class="btn deck-slot deck-empty" disabled><span>${i+1}</span>빈 슬롯</button>`
+    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,sub:copyLabel(equippedCopy(draft[i],draftCopies[draft[i]]))})).join('');
+  document.querySelector('#deckcount').textContent=`덱 ${draft.length}/6 · 보유 ${cards.filter(c=>ownsCard(c.id)).length}/${cards.length}종`;
+  document.querySelector('#save-deck').disabled=draft.length!==6;
+}
+function renderCollection(){
+  main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">저장</button></div><div id="deck-slots"></div><div id="deck-message" role="status"></div><p>덱에서 교체할 자리를 누른 뒤, 보유 카드의 교체 버튼을 눌러.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div id="collection-grid"></div>';
+  document.querySelector('#query').value=query;collectionGrid();
+}
+let copySubject=null, copyReturn='collection', copyMode=null;
+function renderCopies(){
+  const card=cards[copySubject];
+  const tiles=cardCopies(card.id).map((unit,i)=>{
+    const serial=unit.serial?'#'+unit.serial:'기본 카드';
+    const listed=marketItems.some(item=>item.id===unit.id);
+    const selection=copyMode==='featured'&&featuredId===card.id?featuredCopy:copyMode==='deck'?draftCopies[card.id]:null;
+    return `<article class="copy-tile">${cardHTML(card,{action:'copy-index',sub:serial,key:i})}<small>${listed?'판매 중':selection===unit.id?'장착 중':'보유 중'}</small>${copyMode?`<button class="btn primary" data-equip-copy="${i}">${copyMode==='featured'?'대표 카드로 선택':'덱에 장착'}</button>`:''}</article>`;
+  });
+  main.innerHTML=`<section class="sub-head"><button class="btn" id="copies-back">‹ 뒤로 가기</button><h1>${card.name}</h1><p>${copyMode?'장착할 사본을 골라줘. · ':''}보유 카드 ${tiles.length}장</p></section><div class="grid copy-gallery">${tiles.join('')||'<p>보유한 카드가 없어.</p>'}</div>`;
+}
+let featureReturn='battle';
+function renderFeatured(){
+  main.innerHTML=`<section class="sub-head"><button class="btn" data-go="${featureReturn}">‹ 뒤로</button><h1>프로필 카드 선택</h1></section><div class="grid">${cards.filter(c=>ownsCard(c.id)).map(c=>cardHTML(c,{action:'feature',pressed:c.id===featuredId})).join('')}</div>`;
+}
+const adjacent=i=>[i-1,i+1].filter(j=>j>=0&&j<3);
+function announceBattle(state,label){
+  state.announcement=label;
+  if(tab==='battle')render();
+  setTimeout(()=>{
+    if(match===state&&state.announcement===label){
+      state.announcement='';
+      if(tab==='battle')render();
+    }
+  },reduced?10:650);
+}
+function returnAfterMatch(state){
+  setTimeout(()=>{
+    if(match!==state)return;
+    match=null;
+    if(tab==='battle'){if(detail.open)detail.close();render();}
+  },5000);
+}
+function start(){
+  const enemyDeck=shuffle(cards.map(c=>c.id)).slice(0,6);
+  match={turn:1,teams:[[],[]],deadline:Date.now()+20000,hands:[[...new Set([...profile.deck.filter(ownsCard),...starter])].slice(0,6),enemyDeck],selected:null,lane:null,history:[],busy:false,outcome:null};
+  announceBattle(match,'대전 시작 · 1턴');
+}
+const line=(side,lane)=>match.teams[side].filter(u=>u.lane===lane&&u.hp>0);
+const front=(side,lane)=>line(side,lane)[0];
+const score=(side,lane)=>line(side,lane).reduce((sum,u)=>sum+u.hp,0);
+function unitHTML(u){return `<button type="button" class="unit ${match.fresh?.includes(u)?'fresh-unit':''}" style="--hp:${Math.round(u.hp/u.c.hp*100)}%;--foil:${u.c.color}" data-detail="${u.c.id}" aria-label="${u.c.name}, 체력 ${u.hp}, 보호막 ${u.shield}" title="${u.c.name}"><img src="${u.c.art}" alt=""><span>${u.hp}${u.shield?' +'+u.shield:''}</span></button>`;}
+let homeMode='ai';
+function renderBattle(){
+  if(!match){
+    const hero=cards[onlineProfile?.profileCard?.card??((featuredId!==null&&ownsCard(featuredId)?featuredId:null)??profile.deck.find(ownsCard)??starter[0])];
+    const bannerCopy=equippedCopy(hero.id,featuredId===hero.id?featuredCopy:profile.deckCopies?.[hero.id]);
+    main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
+    <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion">${cardHTML(hero,{action:'home-copy',sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div></div></div>
+    </section>
+    <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
+    ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
+    return;
+  }
+  const {turn,selected,lane,history,busy,outcome}=match;
+  const board=zones.map((name,i)=>{
+    const a=score(0,i),b=score(1,i);
+    return `<section class="lane ${lane===i?'chosen':''} ${a>b?'adv':a<b?'behind':''} ${match.phase==='impact'&&match.changes?.[i].length?'strike':''}"><button class="lane-title ${selected!==null&&!busy&&!outcome?'lane-ready':''}" data-lane="${i}" aria-pressed="${lane===i}" ${busy||outcome?'disabled':''}>${name}</button><div class="units enemy">${(match.phase==='impact'?match.snapshot[1][i]:line(1,i)).map(unitHTML).join('')||'<span class="empty">—</span>'}</div><div class="lane-score">내 ${a} · 상대 ${b}</div>${match.phase==='impact'&&match.changes[i].length?`<div class="impact-fx"><i></i>${match.changes[i].map(({label,side},j)=>`<b class="change-${side}" style="--j:${j}">${label}</b>`).join('')}</div>`: ''}<div class="units ally">${(match.phase==='impact'?match.snapshot[0][i]:line(0,i)).map(unitHTML).join('')||'<span class="empty">—</span>'}</div></section>`;
+  }).join('');
+  const hand=match.hands[0].map(id=>cardHTML(cards[id],{action:'pick',pressed:selected===id,disabled:busy||!!outcome})).join('');
+  const result=outcome&&(match.online&&!match.ai?({win:'온라인 승리 · +10 트로피 · +120 코인',loss:'온라인 패배',draw:'온라인 무승부'})[outcome]:({win:'승리 · +120 코인',loss:'패배 · +40 코인',draw:'무승부 · +60 코인'})[outcome]);
+  main.innerHTML=`<section class="arena-shell ${match.phase||''}"><div class="arena-head"><div><div class="eyebrow">${match.online&&!match.ai?'온라인 1대1':'연습 대전'}</div><h1>세 구역 쟁탈전</h1></div><div class="round-meter" aria-label="${turn} / 5 턴">${zones.concat(['','']).map((_,i)=>`<i class="${i+1===turn?'now':i+1<turn?'past':''}">${i+1}</i>`).join('')}</div></div><div class="toolbar"><strong>${turn} / 5 턴</strong>${match.deadline&&!outcome?`<span class="turn-clock" data-turn-clock>${Math.max(0,Math.ceil((match.deadline-Date.now())/1000))}초</span>`:''}</div><div class="battle-versus"><span>내 전열</span><b>${match.phase==='deployment'?'카드 공개':match.phase==='impact'?'전투 처리':match.phase==='skill'?'고유 능력':match.busy?'상대 대기':'배치 단계'}</b><span>${match.online?escapeHTML(match.opponent):'연습 상대'}</span></div><div class="lanes">${board}</div>${skillBanner()}${match.announcement?`<div class="battle-announcement" role="status">${match.announcement}</div>`:''}${result?`<div class="arena-result result-${outcome}" role="status"><strong>${result}</strong></div>`:''}<div class="toolbar"><button class="btn primary" id="${outcome?(match.online&&!match.ai?'online-again':'start'):'commit'}" ${!outcome&&(busy||selected===null||lane===null)?'disabled':''}>${outcome?'다시 대전':'배치 확정'}</button>${selected!==null&&!outcome?`<button class="btn" data-detail="${selected}">고유 능력 보기</button>`:''}<span class="status" role="status">${result?'':(busy?(match.phase==='impact'?'공격 및 능력 적용':match.phase==='skill'?'고유 능력 발동':match.online&&!match.phase?'상대가 배치를 확정할 때까지 대기 중':'양쪽 카드 공개'):selected===null?'배치할 카드를 골라줘.':lane===null?'배치할 구역을 골라줘.':'배치할 준비가 됐어.')}</span></div><div class="hand">${hand}</div><details class="rules"><summary>전투 규칙</summary>매 턴 양쪽이 카드 1장을 동시에 배치해. 카드들은 같은 구역의 맨 앞 적을 공격하고, 일반 공격 피해는 동시에 적용돼. 다섯 번째 턴이 끝나면 구역별 생존 카드 체력 합이 높은 쪽이 그 구역을 차지해. 동점인 구역은 중립이고, 두 구역을 차지한 쪽이 없으면 무승부야.</details><div class="log" aria-label="전투 기록">${history.slice(0,18).map(s=>`<div>${s}</div>`).join('')||'이번 전투의 배치와 능력 발동 기록이 여기 표시돼.'}</div></section>`;
+}
+function skillBanner(){
+  const cast=match.cast;
+  if(!cast)return '';
+  const card=cards[cast.id];
+  return `<div class="skill-cut-in skill-side-${cast.side}" role="status"><div class="skill-flare"></div><img src="${card.art}" alt=""><div><span>${cast.side===0?'아군':'상대'} 고유 능력</span><strong>${card.skill}</strong><small>${card.name}</small></div></div>`;
+}
+function recordSkill(unit){
+  if(!match.casts)return;
+  if(!match.casts.some(c=>c.id===unit.c.id&&c.side===unit.side))match.casts.push({id:unit.c.id,side:unit.side});
+}
+function playCasts(state,done){
+  const casts=[...state.casts];
+  if(!casts.length||tab!=='battle'){done();return;}
+  const next=()=>{
+    if(match!==state)return;
+    state.cast=casts.shift();
+    if(!state.cast){done();return;}
+    state.phase='skill';
+    if(tab==='battle'){render();playSound('reveal');}
+    setTimeout(next,reduced?15:540);
+  };
+  next();
+}
+function makeUnit(id,side,lane){
+  const c=cards[id];
+  return {c,side,lane,hp:c.hp,atk:c.atk,shield:0,weak:0,attacks:0,locked:false,used:false,burn:[]};
+}
+function hurt(u,amount,pierce=false){
+  if(amount<=0||u.hp<=0)return 0;
+  if(u.c.fx==='veil'&&!u.used){recordSkill(u);u.used=true;amount=Math.max(0,amount-u.c.n);}
+  if(!pierce){const blocked=Math.min(u.shield,amount);u.shield-=blocked;amount-=blocked;}
+  const dealt=Math.min(u.hp,amount);
+  u.hp-=dealt;
+  if(u.hp===0&&u.c.fx==='revive'&&!u.used){recordSkill(u);u.used=true;u.hp=u.c.n;match.history.unshift(`${u.c.name} · ${u.c.skill} 발동`);}
+  return dealt;
+}
+function heal(u,n){if(u&&u.hp>0)u.hp=Math.min(u.c.hp,u.hp+n);}
+function deploy(u){
+  if(u.hp<=0)return;
+  const {side,lane,c}=u,{fx,n}=c;
+  const other=1-side, neighbors=adjacent(lane);
+  const target=front(other,lane);
+  const nearby=neighbors.map(j=>front(other,j)).find(v=>v&&!v.locked);
+  const allies=match.teams[side].filter(v=>v.hp>0);
+  const sideAllies=allies.filter(v=>neighbors.includes(v.lane));
+  let triggered=true;
+  switch(fx){
+    case 'burn':triggered=!!target;if(target)target.burn.push({n,left:2});break;
+    case 'rally':triggered=allies.length>1;allies.filter(v=>v!==u).forEach(v=>v.atk+=n);break;
+    case 'ambush':triggered=!!target;if(target)hurt(target,n);break;
+    case 'pull':triggered=!!(target||nearby);if(!target&&nearby)nearby.lane=lane;if(target||nearby)hurt(target||nearby,n);break;
+    case 'stagger':triggered=!!target;if(target)target.weak+=n;break;
+    case 'push':triggered=!!target;if(target){hurt(target,n);if(!target.locked)target.lane=neighbors.find(j=>!front(other,j))??neighbors[0];}break;
+    case 'ward':[u,...sideAllies].forEach(v=>v.shield+=n);break;
+    case 'weaken':triggered=line(other,lane).some(v=>v.atk>0);line(other,lane).forEach(v=>v.atk=Math.max(0,v.atk-n));break;
+    case 'guard':u.shield+=n;break;
+    case 'heal':triggered=allies.some(v=>v!==u&&v.hp<v.c.hp);heal(allies.filter(v=>v!==u).sort((a,b)=>(b.c.hp-b.hp)-(a.c.hp-a.hp))[0],n);break;
+    case 'aid':triggered=sideAllies.some(v=>v.hp<v.c.hp);[u,...sideAllies].forEach(v=>heal(v,n));break;
+    case 'swap':triggered=!!target;if(target&&!target.locked&&nearby){target.lane=nearby.lane;nearby.lane=lane;}if(front(other,lane))hurt(front(other,lane),n);break;
+    case 'lock':triggered=!!target;if(target){target.locked=true;hurt(target,n);}break;
+    case 'taunt':match.teams[side]=[u,...match.teams[side].filter(v=>v!==u)];u.shield+=n;break;
+    default:return;
+  }
+  if(triggered){recordSkill(u);match.history.unshift(`${u.c.name} · ${c.skill}`);}
+}
+function attack(u,hits,drains){
+  const {lane,side,c}=u,{fx,n}=c, other=1-side;
+  const enemies=line(other,lane), target=enemies[0];
+  const add=(v,amount,pierce=false)=>{if(v&&amount>0)hits.push({v,amount,pierce});};
+  if(!target){
+    if(fx==='empty'){const target=adjacent(lane).map(j=>front(other,j)).find(Boolean);if(target){add(target,n);recordSkill(u);}}
+    return;
+  }
+  let amount=Math.max(0,u.atk-u.weak);
+  u.attacks++;
+  const bonuses={
+    finisher:target.hp*2<=target.c.hp,laststand:u.hp*2<=c.hp,bond:line(side,lane).length>1,
+    heavies:target.c.hp>=90,flank:lane!==1,solo:line(side,lane).length===1,
+    echo:match.turn>=3,combo:u.attacks%2===0,beat:match.turn%2===1
+  };
+  if(bonuses[fx]){amount+=n;recordSkill(u);}
+  if(target.c.fx==='armor'&&amount){amount=Math.max(0,amount-target.c.n);recordSkill(target);}
+  add(target,amount);
+  if(fx==='splash')adjacent(lane).forEach(j=>{const target=front(other,j);if(target){add(target,n);recordSkill(u);}});
+  if(fx==='cleave'&&enemies[1]){add(enemies[1],n);recordSkill(u);}
+  if(fx==='pierce'){add(target,n,true);recordSkill(u);}
+  if(amount>0&&target.c.fx==='retort'){add(u,target.c.n);recordSkill(target);}
+  if(fx==='drain'&&amount>0)drains.push({u,target,amount,n});
+}
+function fight(){
+  const units=match.teams.flat().filter(u=>u.hp>0);
+  const hits=[],drains=[];
+  units.forEach(u=>attack(u,hits,drains));
+  const damage=new Map();
+  for(const {v,amount,pierce} of hits){
+    const d=damage.get(v)||{normal:0,pierce:0};
+    d[pierce?'pierce':'normal']+=amount;damage.set(v,d);
+  }
+  const recovering=drains.map(({u,target,amount,n})=>[u,Math.max(0,Math.min(n,amount-target.shield-((target.c.fx==='veil'&&!target.used)?target.c.n:0),target.hp))]);
+  for(const [unit,d] of damage){
+    let {normal,pierce}=d;
+    if(unit.c.fx==='veil'&&!unit.used){
+      recordSkill(unit);
+      const blocked=Math.min(normal,unit.c.n);
+      normal-=blocked;
+      pierce=Math.max(0,pierce-(unit.c.n-blocked));
+      unit.used=true;
+    }
+    const absorbed=Math.min(unit.shield,normal);
+    unit.shield-=absorbed;
+    hurt(unit,normal-absorbed+pierce,true);
+  }
+  recovering.forEach(([u,n])=>{if(n&&u.hp>0&&u.hp<u.c.hp){heal(u,n);recordSkill(u);}});
+  for(const u of units){
+    for(const burn of u.burn){hurt(u,burn.n);burn.left--;}
+    u.burn=u.burn.filter(b=>b.left>0);
+    if(u.hp>0&&u.hp<u.c.hp&&u.c.fx==='snack'){heal(u,u.c.n);recordSkill(u);}
+    if(u.hp>0&&u.c.fx==='growth'){u.atk+=u.c.n;recordSkill(u);}
+  }
+  match.teams=match.teams.map(team=>team.filter(u=>u.hp>0));
+}
+function enemyPlay(){
+  const options=match.hands[1].flatMap(id=>zones.map((_,lane)=>{
+    const c=cards[id], a=score(0,lane), b=score(1,lane);
+    const contest=a-b;
+    const spread=b===0?27:0;
+    const pressure=contest>0&&contest<140?24:0;
+    const positional=(c.fx==='flank'&&lane!==1?16:0)+(c.fx==='bond'&&b>0?14:0)+(c.fx==='solo'&&b===0?13:0)+(c.fx==='ambush'&&a>0?18:0);
+    return {id,lane,value:Math.random()*61+spread+pressure+positional+Math.min(12,contest/8)+c.atk/2+c.hp/10};
+  }));
+  return options.sort((a,b)=>b.value-a.value)[0];
+}
+function commit(){
+  const m=match;
+  if(!m||m.busy||m.outcome||m.selected===null||m.lane===null)return;
+  const enemy=enemyPlay();
+  const players=[makeUnit(m.selected,0,m.lane),makeUnit(enemy.id,1,enemy.lane)];
+  m.teams.flat().forEach(u=>{u.weak=0;u.locked=false;});
+  players.forEach(u=>{
+    m.teams[u.side].push(u);
+    m.hands[u.side]=m.hands[u.side].filter(id=>id!==u.c.id);
+  });
+  m.history.unshift(`${m.turn}턴 · 내 ${players[0].c.name} (${zones[m.lane]}) / 상대 ${players[1].c.name} (${zones[enemy.lane]})`);
+  m.used??=[];m.used.push(m.selected);
+  m.busy=true;m.phase='deployment';m.fresh=players;announceBattle(m,m.turn+'턴 카드 배치');playSound('deploy');
+  setTimeout(()=>{
+    if(match!==m)return;
+    const original=m.teams.map((team,side)=>zones.map((_,i)=>line(side,i).map(u=>({...u,original:u}))));
+    m.announcement='';m.casts=[];
+    const priority=m.turn%2===1?players:[...players].reverse();
+    priority.forEach(deploy);
+    fight();
+    m.snapshot=original;
+    m.changes=zones.map((_,i)=>original.flatMap(lanes=>lanes[i]).flatMap(u=>{
+      const diff=u.original.hp-u.hp, shield=u.original.shield-u.shield;
+      if(diff!==0)return [{side:u.side,label:diff>0?'+'+diff:String(diff)}];
+      if(shield!==0)return [{side:u.side,label:(shield>0?'+':'')+shield+' 방어'}];
+      if(u.lane!==u.original.lane)return [{side:u.side,label:'이동'}];
+      return [];
+    }).slice(0,6));
+    playCasts(m,()=>{
+    m.phase='impact';m.fresh=[];m.announcement='';
+    if(tab==='battle'){render();if(m.changes.some(lane=>lane.length))playSound('strike');}
+    setTimeout(()=>{
+      if(match!==m)return;
+      announceBattle(m,m.turn+'턴 종료');
+      setTimeout(()=>{
+      if(match!==m)return;
+      m.busy=false;m.phase='';m.announcement='';m.selected=null;m.lane=null;m.snapshot=null;m.changes=null;
+      if(m.turn===5){
+        const counts=[0,0];
+        zones.forEach((_,i)=>{const a=score(0,i),b=score(1,i);if(a!==b)counts[a>b?0:1]++;});
+        m.outcome=counts[0]>=2?'win':counts[1]>=2?'loss':'draw';
+        profile.coins+=({win:120,loss:40,draw:60})[m.outcome];
+        profile.stats??={};
+        for(const id of m.used){const row=profile.stats[id]??={uses:0,wins:0};row.uses++;if(m.outcome==='win')row.wins++;}
+        if(m.outcome==='win'){profile.wins++;if(tab==='battle')playSound('win');}
+        save();returnAfterMatch(m);
+      }else{m.turn++;m.deadline=Date.now()+20000;announceBattle(m,m.turn+'턴 시작');}
+      if(tab==='battle')render();else updateHeader();
+      },reduced?10:660);
+    },reduced?10:760);
+    });
+  },reduced?10:550);
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
+  const {tab:dest,go,detail:id,pick,lane,draw:count,deck}=b.dataset;
+  if(dest||go){if(go==='featured')featureReturn=tab;if(match&&tab==='battle')return;if(b.dataset.panel)onlinePanel=b.dataset.panel;tab=dest||go;render();return;}
+  if(b.dataset.openCopies!==undefined){selectCopy(+b.dataset.openCopies,null);return;}
+  if(b.id==='copies-back'){tab=copyReturn;render();return;}
+  if(b.dataset.copyIndex!==undefined){showDetail(copySubject,+b.dataset.copyIndex);return;}
+  if(b.dataset.feature!==undefined){selectCopy(+b.dataset.feature,'featured');return;}
+  if(b.dataset.homeCopy!==undefined){
+    const cardId=+b.dataset.homeCopy;
+    const chosen=onlineProfile ? cardCopies(cardId).find(unit=>unit.serial===onlineProfile.profileCard?.serial) : equippedCopy(cardId,featuredId===cardId?featuredCopy:profile.deckCopies?.[cardId]);
+    showDetail(cardId,cardCopies(cardId).findIndex(unit=>unit.id===chosen?.id));return;
+  }
+  if(b.dataset.equipCopy!==undefined){
+    const unit=cardCopies(copySubject)[+b.dataset.equipCopy];
+    if(!unit)return;
+    if(copyMode==='featured'){
+      if(onlineProfile){void chooseProfileCard(copySubject,unit,copyReturn==='featured'?featureReturn:copyReturn);return;}
+      featuredId=copySubject;featuredCopy=unit.id;
+      try{localStorage.setItem('lilago-featured-card',JSON.stringify({card:featuredId,copy:featuredCopy}));}catch{}
+      tab='battle';
+    }else if(copyMode==='deck'&&equipDeckCopy(copySubject,unit.id))tab=copyReturn;
+    else return;
+    render();return;
+  }
+  if(id!==undefined){showDetail(+id);return;}
+  if(count||b.dataset.aiDraw){draw(+(count||b.dataset.aiDraw),!!b.dataset.aiDraw);return;}
+  if(pick!==undefined&&match&&!match.busy&&!match.outcome){match.selected=+pick;render();return;}
+  if(lane!==undefined&&match&&!match.busy&&!match.outcome){match.lane=+lane;render();return;}
+  if(b.dataset.slot!==undefined){replaceSlot=replaceSlot===+b.dataset.slot?null:+b.dataset.slot;collectionGrid();return;}
+  if(b.id==='deck-clear'||b.id==='deck-reset'){draft=b.id==='deck-clear'?[]:[...(onlineProfile?.deck??profile.deck)];draftCopies=b.id==='deck-clear'?{}:{...profile.deckCopies};replaceSlot=null;collectionGrid();return;}
+  if(b.dataset.removeCard!==undefined){setDeckCard(+b.dataset.removeCard);return;}
+  if(deck!==undefined){
+    const cardId=+deck;
+    selectCopy(cardId,'deck');
+    return;
+  }
+  if(b.id==='audio-toggle'){soundOn=!soundOn;try{localStorage.setItem('lilago-card-audio',soundOn?'on':'off');}catch{}updateHeader();if(soundOn)playSound('deploy');}
+  if(b.id==='start')void startPractice();
+  if(b.id==='play-selected'){if(homeMode==='ai')void startPractice();else void queueFromHome();}
+  if(b.id==='online-again'){match=null;homeMode='online';render();void queueFromHome();}
+  if(b.id==='leave'){if(match?.online&&!match.outcome){tab='online';render();}else{match=null;render();}}
+  if(b.id==='commit'){if(match?.online)submitOnlineMove();else commit();}
+  if(b.id==='close-detail')detail.close();
+  if(b.id==='save-deck'&&draft.length===6){
+    const next=[...draft];
+    profile.deck=next;profile.deckCopies={...draftCopies};
+    if(!save()){b.textContent='저장 실패';return;}
+    b.textContent='저장 완료';
+    if(onlineProfile){
+      b.disabled=true;
+      void onlineFetch('/deck','POST',{deck:next}).then(()=>{onlineProfile.deck=next;}).catch(()=>{b.textContent='저장';const message=document.querySelector('#deck-message');if(message)message.textContent='이 기기에 저장했어. 온라인 덱은 서버에서 보유한 카드만 쓸 수 있어.';}).finally(()=>{b.disabled=false;});
+    }
+  }
+});
+document.addEventListener('change',e=>{if(e.target.id==='home-mode')homeMode=e.target.value;});
+document.addEventListener('input',e=>{if(e.target.id==='query'){query=e.target.value;collectionGrid();}});
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse'||reduced)return;
+  const card=e.target.closest('.card');
+  if(!card||card.disabled)return;
+  const box=card.getBoundingClientRect();
+  const x=Math.max(-.5,Math.min(.5,(e.clientX-box.left)/box.width-.5));
+  const y=Math.max(-.5,Math.min(.5,(e.clientY-box.top)/box.height-.5));
+  card.style.setProperty('--tilt-x',`${-y*12}deg`);
+  card.style.setProperty('--tilt-y',`${x*14}deg`);
+  card.style.setProperty('--art-x',`${x*3}px`);
+  card.style.setProperty('--art-y',`${y*3}px`);
+});
+const onlineBase = 'https://lilago-card-arena-market-api.onrender.com';
+let onlinePanel='queue', onlineProfile=null, token='', onlineTimer=null, onlineBusy=false, onlineMessage='', queued=false;
+const onlineLists={rank:[],friends:[],request:[]};
+
+try{token=localStorage.getItem('lilago-online-token')||'';}catch{}
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
+async function onlineFetch(route,method='GET',body){
+  if(!onlineBase.startsWith('http'))throw Error('온라인 서버 주소가 설정되지 않았어.');
+  const headers=token?{Authorization:'Bearer '+token}:{};
+  if(body)headers['Content-Type']='application/json';
+  const response=await fetch(onlineBase+route,{method,headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(40000)});
+  if(response.status===401&&token){
+    token='';onlineProfile=null;
+    try{localStorage.removeItem('lilago-online-token');}catch{}
+  }
+  const result=await response.json();
+  if(!response.ok)throw Error(result.error||'온라인 서버에 연결하지 못했어.');
+  return result;
+}
+let marketItems=[], marketQuery='', rankQuery='', rankSort='trophies', queuedAt=0;
+function emblem(p){
+  const featured=p.profileCard;
+  const card=cards[featured?.card];
+  if(!card)return `<span class="online-avatar frame-${p.frame}">◇</span>`;
+  return `<span class="public-profile-card" title="${escapeHTML(card.name)}">${cardHTML(card,{sub:copyLabel(featured)})}</span>`;
+}
+async function chooseProfileCard(card,unit,returnTo){
+  if(onlineBusy)return;
+  onlineBusy=true;
+  try{
+    syncAccount(await onlineFetch('/profile/card','POST',{card,unit:unit.id.startsWith('basic-')?null:unit.id}));
+    tab=returnTo;
+    onlineMessage='프로필 카드를 저장했어.';
+  }catch(error){onlineMessage=error.message;tab='online';onlinePanel='profile';}
+  finally{onlineBusy=false;render();}
+}
+function listings(){
+  return marketItems.filter(item=>[cards[item.card].name,item.serial,item.sellerName].some(value=>String(value).toLowerCase().includes(marketQuery.toLowerCase()))).sort((a,b)=>a.price-b.price).map(item=>`<li><img class="market-art" alt="" src="${cards[item.card].art}"><div><b>${cards[item.card].name}</b><small>시리얼 #${item.serial} · ${escapeHTML(item.sellerName)}</small></div><strong>${item.price.toLocaleString()} 코인</strong><button class="btn" data-online-action="${item.seller===onlineProfile.id?'unlist':'buy'}" data-item="${item.id}" data-price="${item.price}">${item.seller===onlineProfile.id?'판매 취소':'구매'}</button></li>`).join('')||'<li>검색에 맞는 판매 카드가 없어.</li>';
+}
+function rankRows(){
+  const current=rankQuery.trim().toLowerCase().replace(/^#/,'');
+  return [...onlineLists.rank].sort((a,b)=>b[rankSort]-a[rankSort]).map((p,i)=>({p,i})).filter(({p})=>p.name.toLowerCase().includes(current)||p.id.toLowerCase().includes(current)).map(({p,i})=>`<li><b class="position">${['🥇','🥈','🥉'][i]||i+1}</b>${emblem(p)}<div><b>${escapeHTML(p.name)}${p.id===onlineProfile?.id?' (나)':''}</b><small>#${p.id}</small><strong>🏆 ${p.trophies.toLocaleString()}</strong></div><span>${p.wins}승 · ${p.losses}패</span></li>`).join('')||'<li>표시할 유저가 없어.</li>';
+}
+function syncAccount(player){
+  const changedAccount=onlineProfile?.id!==player.id;
+  onlineProfile=player;
+  if(changedAccount&&player.deck?.length===6){draft=[...player.deck];draftCopies={};}
+  updateHeader();
+  if(tab==='battle'&&!match)renderBattle();
+  if(tab==='collection')renderCollection();
+  if(tab==='pack')renderPack();
+}
+let queueStarting=false, queueNotice='';
+async function startPractice(){
+  if(!onlineProfile?.sharedPracticeWallet){start();return;}
+  if(queueStarting||queued)return;
+  queueStarting=true;queueNotice='';render();
+  try{loadOnlineMatch(await onlineFetch('/practice','POST',{catalog:cards.length}));}
+  catch(error){queueNotice=error.message;}
+  finally{queueStarting=false;render();}
+}
+function queueMarkup(){return `<div class="queue-head"><strong>⚡ 결투 아레나</strong><span>대기 중</span></div><div class="queue-field"><div class="queue-box"><div class="queue-bars"><i></i><i></i><i></i></div><div class="queue-label">FINDING PLAYERS</div><h2>1대1 참가자를 찾는 중</h2><div class="queue-seats"><b>✓</b><b>…</b></div><strong>1 / 2명 <small>· <span id="queue-seconds">0</span>초 대기</small></strong><p>플레이어가 모두 모이면 시작해요.</p></div><button class="btn queue-cancel" data-online-action="cancel">매칭 취소</button><div class="queue-tip"><b>알고 있었나요?</b><p>고유 능력이 발동하면 기술 이름이 전투 화면에 표시돼!</p></div></div>`;}
+function renderMatching(){
+  main.innerHTML=queued?queueMarkup():`<section class="sub-head"><h1>온라인 1대1 매칭</h1><p role="status">${escapeHTML(queueNotice||'상대를 찾을 준비 중…')}</p><button class="btn" data-go="battle" ${queueStarting?'disabled':''}>‹ 홈</button></section>`;
+}
+async function queueFromHome(){
+  if(queued||queueStarting)return;
+  if(!token){const welcome=document.querySelector('#welcome');if(!welcome.open)welcome.showModal();return;}
+  tab='matching';queueStarting=true;queueNotice='';render();
+  try{
+    const status=await onlineFetch('/queue','POST',{});
+    if(status.room){queued=false;tab='battle';loadOnlineMatch(status.room);return;}
+    queued=status.queued;queuedAt=Date.now();
+    if(queued)scheduleOnline(pollQueue);
+  }catch(error){queueNotice=error.message;}
+  finally{queueStarting=false;if(tab==='matching')render();}
+}
+function renderOnline(){
+  const tabs=[['queue','1대1 대전'],['friends','친구'],['rank','리더보드'],['profile','프로필'],['request','신규 카드 요청'],['market','시장']];
+  let panel='';
+  if(onlinePanel==='rank'){
+    panel=`<h2>🏆 랭킹</h2><div class="rating-summary">내 총 트로피 <b>🏆 ${onlineProfile?.trophies??0}</b><span>${onlineProfile?.wins??0}승</span></div><div class="toolbar rank-tools"><input id="rank-search" type="search" placeholder="닉네임 또는 친구 코드 검색" aria-label="닉네임 또는 친구 코드 검색" value="${escapeHTML(rankQuery)}"><select id="rank-sort" aria-label="순위 정렬"><option value="trophies" ${rankSort==='trophies'?'selected':''}>트로피순</option><option value="wins" ${rankSort==='wins'?'selected':''}>승리순</option></select><button class="btn" data-online-action="refresh">↻ 새로고침</button></div><ol class="online-list rank-list" id="rank-rows">${rankRows()}</ol>`;
+  }else if(!onlineProfile){
+    panel=token?'<p>온라인 프로필 확인 중…</p><button class="btn" data-online-action="refresh">다시 연결</button>':'<h2>온라인 프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" required maxlength="20" autocomplete="nickname"></label><label>테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">연결</button></form>';
+  }else if(onlinePanel==='queue'){
+    panel=queued?queueMarkup():`<h2>온라인 1대1</h2><p>선택한 덱으로 대결해. 한 턴은 최대 20초야.</p><button class="btn primary" data-online-action="${queued?'cancel':'queue'}">${queued?'매칭 취소':'상대 찾기'}</button>${queued?'<p>상대를 찾는 중이야…</p>':''}`;
+  }else if(onlinePanel==='friends'){
+    panel=`<h2>친구</h2><p>내 친구 코드 <b>${onlineProfile.id}</b></p><form data-online-form="friends"><label>친구 코드 <input name="id" required maxlength="8" autocomplete="off"></label><button class="btn primary">추가</button></form><ul class="online-list">${onlineLists.friends.map(p=>`<li>${emblem(p)}<div><b>${escapeHTML(p.name)}</b><small>#${p.id}</small></div><span>🏆 ${p.trophies} · ${p.wins}승</span></li>`).join('')}</ul>`;
+  }else if(onlinePanel==='profile'){
+    const p=onlineProfile;
+    panel=`<h2>내 프로필</h2><div class="profile-card">${emblem(p)}<b>${escapeHTML(p.name)}</b><span>🏆 ${p.trophies} · ${p.wins}승 ${p.losses}패</span><button class="btn" data-go="featured">프로필 카드 선택</button></div><form data-online-form="profile"><label>닉네임 <input name="name" required maxlength="20" value="${escapeHTML(p.name)}"></label><label>테두리 <select name="frame">${[['mint','민트'],['violet','보라'],['amber','골드']].map(([key,name])=>`<option value="${key}" ${p.frame===key?'selected':''}>${name}</option>`).join('')}</select></label><button class="btn primary">저장</button></form>`;
+  }else if(onlinePanel==='market'){
+    const available=onlineProfile.inventory.filter(u=>!marketItems.some(item=>item.id===u.id));
+    const mine=available.filter(u=>(onlineProfile.starters??starter).includes(u.card)||available.filter(copy=>copy.card===u.card).length>1);
+    panel=`<h2>카드 시장</h2><p>중복 카드 판매 · 카드마다 한 장은 남겨야 해.</p><p>거래 잔액 <strong>${onlineProfile.coins.toLocaleString()} 코인</strong></p><div class="toolbar"><input id="market-search" type="search" placeholder="카드 이름, 번호, 판매자 검색" aria-label="시장 검색" value="${escapeHTML(marketQuery)}"><button class="btn" data-online-action="refresh">새로고침</button></div><form data-online-form="list"><label>판매할 카드 <select name="id" required><option value="">선택</option>${mine.map(unit=>`<option value="${unit.id}">${cards[unit.card].name} #${unit.serial}</option>`).join('')}</select></label><label>가격 <input name="price" type="number" min="1" max="1000000" required></label><button class="btn primary">판매 등록</button></form><ul class="online-list market-list" id="market-rows">${listings()}</ul>`;
+  }else{
+    panel=`<h2>신규 카드 요청</h2><form data-online-form="request"><label>카드 이름 <input name="name" required maxlength="60"></label><label>아이디어 <textarea name="idea" required maxlength="400" rows="4"></textarea></label><label>카드 사진 <input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="btn primary">요청 보내기</button></form><ul class="online-list">${onlineLists.request.map(r=>`<li>${r.photo?`<img class="market-art" src="${r.photo}" alt="">`:''}<b>${escapeHTML(r.name)}</b><span>접수됨</span></li>`).join('')}</ul>`;
+  }
+  const title=tabs.find(([key])=>key===onlinePanel)?.[1]||'온라인';
+  main.innerHTML=`<div class="sub-head panel-${onlinePanel}"><button class="btn" data-go="battle">‹ 홈</button><h1>${title}</h1></div><section class="online-panel panel-${onlinePanel}">${panel}<p class="status" role="status">${escapeHTML(onlineMessage)}</p></section>`;
+}
+async function refreshOnline(){
+  if(onlineBusy)return;
+  onlineBusy=true;onlineMessage='';
+  try{
+    if(token&&!onlineProfile)syncAccount(await onlineFetch('/profile'));
+    if(onlinePanel==='rank')onlineLists.rank=await onlineFetch('/leaderboard');
+    if(onlineProfile&&onlinePanel==='friends')onlineLists.friends=await onlineFetch('/friends');
+    if(onlineProfile&&onlinePanel==='market'){syncAccount(await onlineFetch('/profile'));marketItems=await onlineFetch('/market');}
+    if(onlineProfile&&onlinePanel==='request')onlineLists.request=await onlineFetch('/requests');
+  }catch(e){onlineMessage=e.message;}
+  finally{onlineBusy=false;if(tab==='online')renderOnline();}
+}
+function scheduleOnline(fn){
+  clearTimeout(onlineTimer);
+  onlineTimer=setTimeout(fn,1500);
+}
+async function pollQueue(){
+  if(!queued)return;
+  try{
+    const status=await onlineFetch('/queue');
+    if(!queued)return;
+    queued=status.queued;
+    if(status.room){queued=false;tab='battle';loadOnlineMatch(status.room);return;}
+    if(!queued)onlineMessage='매칭이 끝났어. 다시 상대를 찾아줘.';
+  }catch(e){onlineMessage=e.message;}
+  if(tab==='online')renderOnline();
+  else if(tab==='matching'){if(!queued)queueNotice=onlineMessage;render();}
+  if(queued)scheduleOnline(pollQueue);
+}
+function loadOnlineMatch(room){
+  const previous=match?.online&&match.roomId===room.id?match:null;
+  const played=previous&&room.last&&room.last.turn>previous.lastTurn;
+  const reorient=team=>room.side===0?team:[team[1],team[0]];
+  const teams=reorient(room.teams).map((team,side)=>team.map(u=>({...u,side,c:cards[u.c.id]})));
+  const outcome=room.winner===null?null:room.winner===-1?'draw':room.winner===room.side?'win':'loss';
+  const state={
+    online:true,ai:room.ai,roomId:room.id,opponent:room.opponent.name,teams,hands:[room.hands,[]],turn:room.turn,deadline:outcome?null:(!played&&previous?previous.deadline:Math.min(room.deadline,Date.now()+20000)),
+    selected:played?null:(previous?.selected??null),lane:played?null:(previous?.lane??null),busy:room.submitted,outcome,
+    history:previous?.history||[],lastTurn:room.last?.turn??0
+  };
+  match=state;
+  const proceed=()=>{if(outcome){returnAfterMatch(state);void onlineFetch('/profile').then(syncAccount).catch(()=>{});}if(tab==='battle')render();if(!outcome)scheduleOnline(pollOnlineMatch);};
+  if(played&&tab==='battle'){
+    state.history.unshift(`${room.last.turn}턴 · 양쪽 카드 공개 및 공격 완료`);
+    state.casts=room.last.casts.map(c=>({...c,side:c.side===room.side?0:1}));
+    state.busy=true;state.outcome=null;
+    state.phase='deployment';
+    state.fresh=teams.flat().filter(u=>!previous.teams[u.side].some(old=>old.c.id===u.c.id));
+    state.announcement=room.last.turn+'턴 카드 배치';
+    render();playSound('deploy');
+    setTimeout(()=>{
+      if(match!==state)return;
+      state.announcement='';
+      playCasts(state,()=>{
+        announceBattle(state,room.last.turn+'턴 종료');
+        setTimeout(()=>{
+          if(match!==state)return;
+          state.busy=room.submitted;state.phase='';state.outcome=outcome;
+          if(!outcome)announceBattle(state,state.turn+'턴 시작');
+          proceed();
+        },reduced?10:660);
+      });
+    },reduced?10:500);
+  }else{if(!previous&&!outcome)announceBattle(state,'대전 시작 · '+state.turn+'턴');proceed();}
+}
+async function pollOnlineMatch(){
+  const id=match?.roomId;
+  if(!id||match.outcome)return;
+  const state=match;
+  try{
+    const room=await onlineFetch('/match?id='+encodeURIComponent(id));
+    if(match!==state||state.sending)return;
+    if(room.turn===state.turn&&room.submitted===state.busy&&room.winner===null){scheduleOnline(pollOnlineMatch);return;}
+    loadOnlineMatch(room);
+  }catch(e){if(match===state){onlineMessage=e.message;scheduleOnline(pollOnlineMatch);}}
+}
+async function submitOnlineMove(){
+  const state=match;
+  if(!state?.online||state.busy||state.outcome||state.selected===null||state.lane===null)return;
+  clearTimeout(onlineTimer);state.busy=true;state.sending=true;render();
+  try{
+    const room=await onlineFetch('/match','POST',{id:state.roomId,turn:state.turn,card:state.selected,lane:state.lane});
+    if(match===state)loadOnlineMatch(room);
+  }catch(e){
+    if(match===state){state.busy=false;state.sending=false;state.history.unshift(e.message);render();scheduleOnline(pollOnlineMatch);}
+  }
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button');
+  if(!b||b.disabled)return;
+  if(b.dataset.onlinePanel){onlinePanel=b.dataset.onlinePanel;onlineMessage='';renderOnline();void refreshOnline();return;}
+  if(b.dataset.go==='online'||b.dataset.tab==='online'){void refreshOnline();return;}
+  const action=b.dataset.onlineAction;
+  if(!action||onlineBusy)return;
+  if(action==='refresh'){void refreshOnline();return;}
+  onlineBusy=true;onlineMessage='';
+  try{
+    if(action==='buy'||action==='unlist'){
+      const price=Number(b.dataset.price);
+      if(action==='buy'&&!confirm(price.toLocaleString()+' 코인으로 이 카드를 구매할까?'))return;
+      const value=await onlineFetch('/market/'+(action==='buy'?'buy':'cancel'),'POST',{id:b.dataset.item,price});
+      syncAccount(value.player);marketItems=value.market;
+    }else if(action==='cancel'){queued=false;clearTimeout(onlineTimer);await onlineFetch('/queue','DELETE');}
+    else{
+      const status=await onlineFetch('/queue','POST',{});
+      if(status.room){queued=false;tab='battle';loadOnlineMatch(status.room);return;}
+      queued=status.queued;queuedAt=Date.now();
+      if(queued)scheduleOnline(pollQueue);
+    }
+  }catch(err){onlineMessage=err.message;}
+  finally{onlineBusy=false;if(tab==='online')renderOnline();else if(action==='cancel'&&tab==='matching'){tab='battle';render();}}
+});
+document.addEventListener('submit',async e=>{
+  const kind=e.target.dataset.onlineForm;
+  if(!kind)return;
+  e.preventDefault();
+  if(onlineBusy)return;
+  const body=Object.fromEntries(new FormData(e.target));
+  onlineBusy=true;onlineMessage='';
+  try{
+    if(kind==='register'){
+      const data=await onlineFetch('/profile/new','POST',body);
+      token=data.token;syncAccount(data.player);
+      try{localStorage.setItem('lilago-online-token',token);}catch{}
+      onlineMessage='온라인 프로필을 만들었어.';closeWelcome();
+    }else if(kind==='profile'){syncAccount(await onlineFetch('/profile','POST',body));onlineMessage='프로필을 저장했어.';}
+    else if(kind==='friends'){onlineLists.friends=await onlineFetch('/friends','POST',body);onlineMessage='친구를 추가했어.';}
+    else if(kind==='list'){
+      const value=await onlineFetch('/market/list','POST',{id:body.id,price:Number(body.price)});
+      syncAccount(value.player);marketItems=value.market;onlineMessage='판매를 등록했어.';
+    }else{body.photo=body.photo?.size?await photoData(body.photo):'';await onlineFetch('/requests','POST',body);onlineLists.request=await onlineFetch('/requests');onlineMessage='요청을 접수했어.';}
+  }catch(err){onlineMessage=err.message;}
+  finally{onlineBusy=false;if(tab==='online')renderOnline();const feedback=document.querySelector('#welcome-status');if(feedback)feedback.textContent=onlineMessage;}
+});
+
+if(typeof window!=='undefined')setInterval(()=>{
+  const wait=document.querySelector('#queue-seconds');if(wait)wait.textContent=String(Math.floor((Date.now()-queuedAt)/1000));
+  const clock=document.querySelector('[data-turn-clock]');
+  const state=match;
+  if(clock&&state?.deadline)clock.textContent=Math.max(0,Math.ceil((state.deadline-Date.now())/1000))+'초';
+  if(!state||state.busy||state.outcome||!state.deadline||Date.now()<state.deadline||!state.hands[0].length)return;
+  state.selected=state.hands[0][Math.floor(Math.random()*state.hands[0].length)];
+  state.lane=Math.floor(Math.random()*3);
+  if(state.online)void submitOnlineMove();else commit();
+},350);
+
+async function photoData(file){
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8_000_000)throw Error('JPG, PNG, WebP 사진을 8MB 이하로 골라줘.');
+  const bitmap=await createImageBitmap(file);
+  const factor=Math.min(1,640/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.round(bitmap.width*factor);canvas.height=Math.round(bitmap.height*factor);
+  canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+  bitmap.close();
+  return canvas.toDataURL('image/jpeg',.72);
+}
+document.addEventListener('input',e=>{
+  if(e.target.id==='market-search'){marketQuery=e.target.value;document.querySelector('#market-rows').innerHTML=listings();}
+  if(e.target.id==='rank-search'){rankQuery=e.target.value;document.querySelector('#rank-rows').innerHTML=rankRows();}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='rank-sort'){rankSort=e.target.value;document.querySelector('#rank-rows').innerHTML=rankRows();}
+});
+async function drawOnline(count){
+  opening=true;render();
+  try{
+    if(!onlineProfile)syncAccount(await onlineFetch('/profile'));
+    const result=await onlineFetch('/draw','POST',{count,catalog:cards.length});
+    onlineMessage='';
+    syncAccount(result.player);packResults=result.results;playSound('open');
+  }catch(e){onlineMessage=e.message;opening=false;render();return;}
+  setTimeout(()=>{opening=false;if(tab==='pack'){render();playSound('reveal');}},reduced?10:1280);
+}
+function closeWelcome(){
+  const welcome=document.querySelector('#welcome');
+  if(welcome?.open)welcome.close();
+}
+function bootArena(){
+  const splash=document.querySelector('#arena-loading');
+  document.querySelector('#welcome').addEventListener('cancel',event=>event.preventDefault());
+  setTimeout(()=>{
+    splash.remove();
+    if(onlineBase.startsWith('http')&&!token){
+      const welcome=document.querySelector('#welcome');
+      welcome.showModal();
+    }
+  },reduced?50:950);
+  if(token)void refreshOnline();
+}
+const lobbyTracks=[
+  {
+    "title": "Black What?",
+    "url": "https://ball-battle-online-john.onrender.com/music/black-what.mp3"
+  },
+  {
+    "title": "Jiral",
+    "url": "https://ball-battle-online-john.onrender.com/music/jiral.mp3"
+  },
+  {
+    "title": "Lil_Ago rsp",
+    "url": "https://ball-battle-online-john.onrender.com/music/lil-ago-rsp.mp3"
+  },
+  {
+    "title": "Red What?",
+    "url": "https://ball-battle-online-john.onrender.com/music/red-what.mp3"
+  },
+  {
+    "title": "Nazareth 2027",
+    "url": "https://ball-battle-online-john.onrender.com/music/nazareth-2027.mp3"
+  },
+  {
+    "title": "Nettspend",
+    "url": "https://ball-battle-online-john.onrender.com/music/nettspend.mp3"
+  },
+  {
+    "title": "모아이가 생각나네",
+    "url": "https://ball-battle-online-john.onrender.com/music/moai-memory.mp3"
+  },
+  {
+    "title": "Cyprus 808",
+    "url": "https://ball-battle-online-john.onrender.com/music/cyprus-808.mp3"
+  },
+  {
+    "title": "9 pointer",
+    "url": "https://ball-battle-online-john.onrender.com/music/9-pointer.mp3"
+  },
+  {
+    "title": "Right there",
+    "url": "https://ball-battle-online-john.onrender.com/music/right-there.mp3"
+  },
+  {
+    "title": "Bed tonight",
+    "url": "https://ball-battle-online-john.onrender.com/music/bed-tonight.mp3"
+  },
+  {
+    "title": "Fetish",
+    "url": "https://ball-battle-online-john.onrender.com/music/fetish.mp3"
+  },
+  {
+    "title": "sayonara",
+    "url": "https://ball-battle-online-john.onrender.com/music/sayonara.mp3"
+  },
+  {
+    "title": "Reload",
+    "url": "https://ball-battle-online-john.onrender.com/music/reload.mp3"
+  },
+  {
+    "title": "Kuzi 96 (Inst.)",
+    "url": "https://ball-battle-online-john.onrender.com/music/kuzi-96-inst.mp3"
+  },
+  {
+    "title": "나체",
+    "url": "https://ball-battle-online-john.onrender.com/music/나체.mp3"
+  },
+  {
+    "title": "Alvin (inst.)",
+    "url": "https://ball-battle-online-john.onrender.com/music/free-hyperpop-x-digicore-type-beat-do-do-do-128-ytshorts.savetube.me.mp3"
+  },
+  {
+    "title": "후나",
+    "url": "https://ball-battle-online-john.onrender.com/music/후나.mp3"
+  },
+  {
+    "title": "Dhyeon wek (inst.)",
+    "url": "https://ball-battle-online-john.onrender.com/music/free-effie-type-hyper-pop-beat-epi-taib-haipeopab-biteu-nintendo-128-ytshorts.savetube.me.mp3"
+  },
+  {
+    "title": "Rage Shit",
+    "url": "https://ball-battle-online-john.onrender.com/music/free-playboi-carti-type-rage-beat-peulreiboikati-taib-reiji-biteu-black-opps-128-ytshorts.savetube.me.mp3"
+  },
+  {
+    "title": "Bounce",
+    "url": "https://ball-battle-online-john.onrender.com/music/muryobiteu-noyunha-x-teureibi-taib-baunsihan-teuraeb-biteu-nastytaste-128-ytshorts.savetube.me.mp3"
+  },
+  {
+    "title": "WHGEM",
+    "url": "https://ball-battle-online-john.onrender.com/music/free-for-profit-cash-cobain-hoodtrap-hyperpop-type-beat-p-probelad-128-ytshorts.savetube.me.mp3"
+  }
+];
+let lobbyMusic=null,musicOn=true,trackIndex=0,musicVolume=.33;
+try{
+  const settings=JSON.parse(localStorage.getItem('lilago-music-settings')||'{}');
+  if(typeof settings.on==='boolean')musicOn=settings.on;
+  if(Number.isInteger(settings.track)&&lobbyTracks[settings.track])trackIndex=settings.track;
+  if(Number.isFinite(settings.volume))musicVolume=Math.max(0,Math.min(1,settings.volume));
+}catch{}
+function updateLobbyMusic(){
+  if(typeof Audio==='undefined'||!lobbyTracks.length)return;
+  if(!lobbyMusic&&musicOn){
+    lobbyMusic=new Audio(lobbyTracks[trackIndex].url);
+    lobbyMusic.volume=musicVolume;
+    lobbyMusic.addEventListener('ended',()=>{chooseTrack(trackIndex+1);const panel=document.querySelector('#music-settings');if(panel.open)showMusicSettings();});
+  }
+  if(!lobbyMusic)return;
+  if(musicOn&&!match&&lobbyMusic.paused)void lobbyMusic.play().catch(()=>{});
+  else if(!musicOn||match)lobbyMusic.pause();
+}
+function storeMusic(){try{localStorage.setItem('lilago-music-settings',JSON.stringify({on:musicOn,track:trackIndex,volume:musicVolume}));}catch{}}
+function trackTitle(i){
+  return lobbyTracks[i].title;
+}
+function chooseTrack(index){
+  if(!lobbyTracks.length)return;
+  trackIndex=(index+lobbyTracks.length)%lobbyTracks.length;
+  if(lobbyMusic)lobbyMusic.src=lobbyTracks[trackIndex].url;
+  storeMusic();updateLobbyMusic();
+}
+function showMusicSettings(){
+  const panel=document.querySelector('#music-settings');
+  panel.innerHTML=`<div class="welcome-body"><div class="toolbar"><h2>음악 설정</h2><button class="btn" id="music-close">닫기</button></div><label>음악 볼륨 <output id="music-level">${Math.round(musicVolume*100)}%</output><input id="music-volume" type="range" min="0" max="100" value="${Math.round(musicVolume*100)}"></label><label>곡 선택 <select id="music-track">${lobbyTracks.map((_,i)=>`<option value="${i}" ${i===trackIndex?'selected':''}>${escapeHTML(trackTitle(i))}</option>`).join('')}</select></label><div class="toolbar"><button class="btn" id="music-prev">이전 곡</button><button class="btn primary" id="music-play">${musicOn?'일시정지':'재생'}</button><button class="btn" id="music-next">다음 곡</button></div></div>`;
+  if(!panel.open)panel.showModal();
+}
+document.addEventListener('click',event=>{
+  const id=event.target.closest('button')?.id;
+  if(id==='music-toggle')showMusicSettings();
+  if(id==='music-close')document.querySelector('#music-settings').close();
+  if(id==='music-prev'||id==='music-next'){chooseTrack(trackIndex+(id==='music-next'?1:-1));showMusicSettings();}
+  if(id!=='music-play'||!lobbyTracks.length)return;
+  musicOn=!musicOn;
+  document.querySelector('#music-toggle').setAttribute('aria-pressed',String(musicOn));
+  storeMusic();updateLobbyMusic();showMusicSettings();
+});
+document.addEventListener('change',event=>{
+  if(event.target.id==='music-track')chooseTrack(Number(event.target.value));
+});
+document.addEventListener('input',event=>{
+  if(event.target.id!=='music-volume')return;
+  musicVolume=Number(event.target.value)/100;
+  if(lobbyMusic)lobbyMusic.volume=musicVolume;
+  document.querySelector('#music-level').textContent=event.target.value+'%';storeMusic();
+});
+if(typeof window!=='undefined'){
+  document.querySelector('#music-toggle').setAttribute('aria-pressed',String(musicOn));
+  document.addEventListener('pointerdown',updateLobbyMusic);
+  document.addEventListener('keydown',updateLobbyMusic);
+  bootArena();
+}
+
+render();
+</script></body></html>
