@@ -203,10 +203,12 @@ header[hidden]{display:none!important}
   font-variant-numeric:tabular-nums;
 }
 .card .art-field .front-serial{position:absolute;z-index:2;right:7%;bottom:5%;font-size:clamp(9px,1.4vw,17px);pointer-events:none}
-.home-card-motion{width:min(100%,275px);animation:home-card-sway 8s ease-in-out infinite;transform-style:preserve-3d}
+.home-card-motion{width:min(100%,275px);position:relative;animation:home-card-spin 12s linear infinite;transform-style:preserve-3d}
 .home-card-motion .card{box-shadow:0 24px 40px #05111bc9,0 0 40px #4fe3df26}
-.home-card-motion:hover,.home-card-motion:focus-within{animation-play-state:paused}
-@keyframes home-card-sway{0%,100%{transform:rotateY(-8deg) rotateX(2deg)}50%{transform:rotateY(8deg) rotateX(-2deg)}}
+.home-card-front,.home-card-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.home-card-front{transform:translateZ(2px)}
+.home-card-motion .home-card-back{position:absolute;inset:0;transform:rotateY(180deg) translateZ(2px);border-radius:11px}
+@keyframes home-card-spin{from{transform:rotateY(0deg)}to{transform:rotateY(360deg)}}
 .public-profile-card{display:block;width:68px;flex:0 0 68px;min-width:0}
 .public-profile-card .cardbody{padding:3px;min-height:0}
 .public-profile-card .name{font-size:9px}
@@ -477,7 +479,7 @@ function renderBattle(){
     const bannerCopy=equippedCopy(hero.id,featuredId===hero.id?featuredCopy:profile.deckCopies?.[hero.id]);
     main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
     <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
-      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion">${cardHTML(hero,{action:'home-copy',sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div></div></div>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion"><div class="home-card-front">${cardHTML(hero,{action:'home-copy',sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div><div class="physical-face physical-back home-card-back" aria-hidden="true">${seal}${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)?`<strong class="back-serial">${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)}</strong>`:''}</div></div></div></div>
     </section>
     <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
     ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
