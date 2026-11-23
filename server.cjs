@@ -5,8 +5,8 @@ const path = require('node:path');
 const { resolveRound, starter, cards } = require('./engine.cjs');
 
 const allowedOrigin = process.env.FRONTEND_ORIGIN || 'https://lilago-card-arena.onrender.com';
-const dataPath = process.env.DATA_FILE || path.join(__dirname, 'arena-data.json');
-const deadlineMs = 60_000;
+const dataPath = process.env.DATA_FILE || path.join(__dirname, 'arena-data-unified.json');
+const deadlineMs = 20_000;
 const rooms = new Map();
 const queue = new Map();
 const registrations = new Map();
@@ -27,7 +27,7 @@ const publicPlayer = p => {
   const {id,name,frame,wins,losses,trophies}=account(p);
   return {id,name,frame,wins,losses,trophies};
 };
-const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, inventory:p.inventory, stats:p.stats });
+const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, inventory:p.inventory, stats:p.stats });
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 function persist() {
@@ -47,6 +47,7 @@ function finish(room, winner) {
       totals.uses++;
       if(winner===side)totals.wins++;
     }
+    if(room.ai){p.coins+=winner===side?120:winner===-1?60:40;continue;}
     if(winner===side){p.wins++;p.trophies+=10;p.coins+=120;}
     else if(winner!==-1){p.losses++;p.coins+=40;}
     else p.coins+=60;
@@ -55,7 +56,7 @@ function finish(room, winner) {
 }
 
 function activeRoom(id) {
-  return [...rooms.values()].find(room => room.ids.includes(id) && room.winner === null);
+  return [...rooms.values()].find(room => !room.ai && room.ids.includes(id) && room.winner === null);
 }
 
 function view(room, id) {
@@ -63,10 +64,19 @@ function view(room, id) {
   const side = room.ids.indexOf(id);
   return {
     id: room.id, side, turn: room.turn, deadline: room.deadline,
-    opponent: publicPlayer(state.players[room.ids[1 - side]]),
+    opponent: room.ai?{name:'연습 상대'}:publicPlayer(state.players[room.ids[1 - side]]),
+    ai: !!room.ai,
     hands: room.hands[side], teams: room.teams,
     submitted: !!room.moves[side], winner: room.winner, last: room.last
   };
+}
+
+function advanceRound(room){
+      room.moves.forEach((move,side)=>room.used[side].push(move.id));
+      room.last = resolveRound(room);
+      room.moves = [null,null];
+      if (room.turn === 5) finish(room,room.last.winner);
+      else { room.turn++;room.deadline=Date.now()+deadlineMs; }
 }
 
 function clean() {
@@ -76,12 +86,15 @@ function clean() {
   for (const room of rooms.values()) {
     if (room.ended && now - room.ended > 300_000) rooms.delete(room.id);
     else if (room.winner === null && now > room.deadline) {
-      const winner = room.moves[0] ? 0 : room.moves[1] ? 1 : -1;
-      finish(room, winner);
+      for(let side=0;side<2;side++){
+        const hand=room.hands[side];
+        room.moves[side]??={id:hand[crypto.randomInt(hand.length)],lane:crypto.randomInt(3)};
+      }
+      advanceRound(room);
     }
   }
 }
-setInterval(clean, 2000).unref();
+setInterval(clean, 250).unref();
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -106,32 +119,13 @@ async function playerFor(req) {
   const token = req.headers.authorization?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
   if (!token) throw error(401, '온라인 프로필 연결이 필요해.');
   const key = hash(token);
-  let player = Object.values(state.players).find(p => p.key === key);
-  const legacy=process.env.LEGACY_ARENA_API;
-  if(!player&&legacy){
-    const headers={Authorization:'Bearer '+token};
-    const response=await fetch(legacy+'/profile',{headers,signal:AbortSignal.timeout(25000)});
-    if(response.ok){
-      const prior=await response.json();
-      if(/^[A-F0-9]{8}$/.test(prior.id)&&!state.players[prior.id]){
-        const oldFriends=await fetch(legacy+'/friends',{headers,signal:AbortSignal.timeout(15000)});
-        const oldRequests=await fetch(legacy+'/requests',{headers,signal:AbortSignal.timeout(15000)});
-        const friends=oldFriends.ok?(await oldFriends.json()).map(p=>p.id):[];
-        player=Object.values(state.players).find(p=>p.key===key);
-        if(!player&&!state.players[prior.id]){
-          player={id:prior.id,key,name:prior.name,frame:prior.frame,wins:prior.wins,losses:prior.losses,friends};
-          state.players[prior.id]=player;
-          if(oldRequests.ok)state.requests.push(...(await oldRequests.json()).map(r=>({...r,player:prior.id})));
-          persist();
-        }
-      }
-    }
-  }
+  const player = Object.values(state.players).find(p => p.key === key);
   if (!player) throw error(401, '온라인 프로필을 다시 연결해줘.');
   return account(player);
 }
 
 function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>p.inventory.some(u=>u.card===id)||starter.includes(id)),...starter])].slice(0,6);}
+const sellable=(p,card)=>p.inventory.filter(u=>u.card===card&&!state.market[u.id]).length>1 || starter.includes(card);
 const marketList=()=>Object.values(state.market).map(item=>({...item,sellerName:state.players[item.seller].name}));
 const handlers = new Map([
   ['POST /profile/new', (req, body) => {
@@ -203,6 +197,7 @@ const handlers = new Map([
   ['POST /market/list', (req, body, p) => {
     const unit=p.inventory.find(u=>u.id===body.id);
     if(!unit||state.market[unit.id])throw error(409,'판매할 카드를 확인해줘.');
+    if(!sellable(p,unit.card))throw error(409,'중복 카드만 판매할 수 있어. 한 장은 덱에 남겨야 해.');
     if(!Number.isSafeInteger(body.price)||body.price<1||body.price>1_000_000)throw error(400,'가격은 1~1,000,000 코인으로 설정해줘.');
     state.market[unit.id]={...unit,price:body.price,seller:p.id};
     persist();return {player:privatePlayer(p),market:marketList()};
@@ -218,10 +213,21 @@ const handlers = new Map([
     const seller=account(state.players[item.seller]);
     const unit=seller.inventory.find(u=>u.id===item.id);
     if(!unit)throw error(409,'카드가 이미 판매됐어.');
+    if(!starter.includes(item.card)&&!seller.inventory.some(u=>u.id!==item.id&&u.card===item.card&&!state.market[u.id]))throw error(409,'판매자가 보유할 카드가 한 장은 남아야 해.');
     p.coins-=item.price;seller.coins+=item.price;
     seller.inventory=seller.inventory.filter(u=>u.id!==item.id);
     p.inventory.push(unit);delete state.market[item.id];
     persist();return {player:privatePlayer(p),market:marketList()};
+  }],
+  ['POST /practice', (req, body, p) => {
+    clean();
+    const active=[...rooms.values()].find(room=>room.ai&&room.ids[0]===p.id&&room.winner===null);
+    if(active)return view(active,p.id);
+    const botDeck=cards.map(c=>c.id);
+    for(let i=botDeck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[botDeck[i],botDeck[j]]=[botDeck[j],botDeck[i]];}
+    const room={ai:true,id:crypto.randomUUID(),ids:[p.id],used:[[],[]],teams:[[],[]],hands:[deckFor(p),botDeck.slice(0,6)],moves:[null,null],turn:1,deadline:Date.now()+deadlineMs,winner:null,last:null};
+    rooms.set(room.id,room);
+    return view(room,p.id);
   }],
   ['POST /queue', (req, body, p) => {
     clean();
@@ -251,12 +257,13 @@ const handlers = new Map([
     if (room.winner !== null || room.turn !== body.turn || room.moves[side]) return view(room,p.id);
     if (!room.hands[side].includes(body.card) || ![0,1,2].includes(body.lane)) throw error(400, '낼 카드와 구역을 확인해줘.');
     room.moves[side] = { id: body.card, lane: body.lane };
+    if(room.ai){
+      const hand=room.hands[1];
+      const lanes=[0,1,2].map(lane=>({lane,value:Math.random()*61+(room.teams[1].some(u=>u.lane===lane)?0:27)}));
+      room.moves[1]={id:hand[crypto.randomInt(hand.length)],lane:lanes.sort((a,b)=>b.value-a.value)[0].lane};
+    }
     if (room.moves.every(Boolean)) {
-      room.moves.forEach((move,side)=>room.used[side].push(move.id));
-      room.last = resolveRound(room);
-      room.moves = [null,null];
-      if (room.turn === 5) finish(room,room.last.winner);
-      else { room.turn++;room.deadline=Date.now()+deadlineMs; }
+      advanceRound(room);
     }
     return view(room,p.id);
   }]
