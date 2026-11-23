@@ -219,6 +219,12 @@ header[hidden]{display:none!important}
 
 
 .card .art-field .front-serial.serial-backed{padding:.18em .42em;border-radius:4px;background:#454a50;color:#ffe3a0;text-shadow:0 -1px 0 #292219,0 1px 1px #17191c,0 0 6px #ffca6ca0;font-weight:950;line-height:1.15;white-space:nowrap}
+
+.card-value{display:grid;gap:2px;line-height:1.3;margin-block:6px}
+.card-value small{font-size:10px;letter-spacing:.02em;color:#cae1dc}
+.card-value strong{color:#ffe0a1;font-size:clamp(11px,2vw,17px)}
+.inspection-copy .card-value{padding:8px 10px;border:1px solid #647b76;border-radius:8px}
+.physical-back .card-value{margin:0}
 </style></head>
 <body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button></nav></header>
 <div id="arena-loading" class="arena-loading"><div><span>◇</span><h1>릴라고 카드 아레나</h1><div class="load-track"><i></i></div><p>아레나 입장 중</p></div></div><dialog id="welcome"><div class="welcome-body"><h2>프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" maxlength="20" required></label><label>프로필 테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">입장</button><p id="welcome-status" role="status"></p></form></div></dialog><main id="main"></main><dialog id="detail"></dialog><dialog id="music-settings"></dialog>
@@ -253,6 +259,33 @@ const serialBackingCards=new Set([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14,
 function cardHTML(c,{action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id}={}){
   return `<button type="button" class="card ${extra}" style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="">${sub.startsWith('#')?`<span class="front-serial${serialBackingCards.has(c.id)?' serial-backed':''}">${sub}</span>`:''}</span><span class="cardbody"><span class="meta"><span></span><span>${sub.startsWith('#')?'':sub}</span></span><span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
 }
+function valueMarkup(id,serial,showSupply=false){
+  return `<span class="card-value" data-card-value="${id}" data-value-serial="${serial||''}"${showSupply?' data-value-supply':''}><small>추정 시장가</small><strong>확인 중…</strong>${showSupply?'<small data-supply-label></small>':''}</span>`;
+}
+const valueRequests = new Map();
+function refreshCardValues(){
+  if(!onlineBase.startsWith('http'))return;
+  const nodes=[...document.querySelectorAll('.home-card-back [data-card-value],#detail[open] [data-card-value]')];
+  for(const node of nodes){
+    const {cardValue:id,valueSerial:serial}=node.dataset;
+    if(!valueRequests.has(node)) {
+      const params=new URLSearchParams({card:id});
+      if(serial)params.set('serial',serial);
+      valueRequests.set(node,true);
+      fetch(onlineBase+'/market/value?'+params,{cache:'no-store',signal:AbortSignal.timeout(7000)})
+        .then(response=>{if(!response.ok)throw Error();return response.json();})
+        .then(quote=>{
+          if(!node.isConnected)return;
+          node.querySelector('strong').textContent=quote.value.toLocaleString('ko-KR')+' 코인';
+          const supply=node.querySelector('[data-supply-label]');
+          if(supply)supply.textContent='서버 유통 '+quote.supply.toLocaleString('ko-KR')+'장 · 시리얼 사본';
+        }).catch(()=>{
+          const price=node.querySelector('strong');
+          if(price.textContent==='확인 중…')price.textContent='가격 확인 불가';
+        }).finally(()=>valueRequests.delete(node));
+    }
+  }
+}
 function showDetail(id, copyIndex){
   const c=cards[id];
   const owned=ownsCard(id);
@@ -265,9 +298,9 @@ function showDetail(id, copyIndex){
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'사본 변경':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
   detail.innerHTML=`<button class="icon-close" id="close-detail" aria-label="닫기">×</button>
   <div class="inspection"><div class="inspection-view"><div class="turntable" tabindex="0" role="group" aria-label="카드 회전. 방향키 또는 드래그로 돌리기" data-turntable>
-  <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial})}</div><div class="physical-face physical-back">${seal}${serial?`<strong class="back-serial">${serial}</strong>`:''}</div><div class="physical-edge"></div></div>
+  <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial})}</div><div class="physical-face physical-back">${seal}${serial?`<strong class="back-serial">${serial}</strong>`:''}${valueMarkup(id,copy?.serial)}</div><div class="physical-edge"></div></div>
   </div><div class="turntable-controls"><span>마우스를 올려 회전 · 드래그로 뒤집기</span><button class="btn" id="flip-card">앞뒤 보기</button><button class="btn" id="reset-card">정면</button></div></div>
-  <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2><div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${deckAction}</div></div>`;
+  <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2>${valueMarkup(id,copy?.serial,true)}<div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${deckAction}</div></div>`;
   const stage=detail.querySelector('[data-turntable]');
   const face=stage.querySelector('.card');
   face.removeAttribute('data-detail');face.tabIndex=-1;face.setAttribute('aria-hidden','true');
@@ -309,6 +342,7 @@ function showDetail(id, copyIndex){
   detail.querySelector('#flip-card').onclick=()=>{y+=180;x=0;rotate();};
   detail.querySelector('#reset-card').onclick=()=>{x=0;y=0;rotate();};
   if(!detail.open)detail.showModal();
+  refreshCardValues();
 }
 function updateHeader(){
   const toggle=document.querySelector('#audio-toggle');
@@ -482,10 +516,11 @@ function renderBattle(){
     const bannerCopy=equippedCopy(hero.id,featuredId===hero.id?featuredCopy:profile.deckCopies?.[hero.id]);
     main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
     <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
-      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion"><div class="home-card-front">${cardHTML(hero,{action:'home-copy',sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div><div class="physical-face physical-back home-card-back" aria-hidden="true">${seal}${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)?`<strong class="back-serial">${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)}</strong>`:''}</div></div></div></div>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion"><div class="home-card-front">${cardHTML(hero,{action:'home-copy',sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div><div class="physical-face physical-back home-card-back" aria-hidden="true">${seal}${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)?`<strong class="back-serial">${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)}</strong>`:''}${valueMarkup(hero.id,(onlineProfile?onlineProfile.profileCard:bannerCopy)?.serial)}</div></div></div></div>
     </section>
     <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
     ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
+    refreshCardValues();
     return;
   }
   const {turn,selected,lane,history,busy,outcome}=match;
@@ -1189,6 +1224,7 @@ if(typeof window!=='undefined'){
   document.addEventListener('pointerdown',updateLobbyMusic);
   document.addEventListener('keydown',updateLobbyMusic);
   bootArena();
+  setInterval(()=>{if(!document.hidden)refreshCardValues();},5000);
 }
 
 render();
