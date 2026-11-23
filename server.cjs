@@ -315,7 +315,7 @@ async function start() {
     ? JSON.parse(fs.readFileSync(dataPath, 'utf8'))
     : { players: {}, requests: [], serials: {}, market: {} };
   if (process.env.CARD_DATABASE_URL) {
-    const { Pool } = require('pg');
+    const { Pool } = require('./pg-bundle.cjs');
     database = new Pool({ connectionString: process.env.CARD_DATABASE_URL, max: 1 });
     await database.query(
       'CREATE TABLE IF NOT EXISTS lilago_card_arena_state (singleton boolean PRIMARY KEY CHECK (singleton), payload jsonb NOT NULL)'
