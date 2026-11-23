@@ -18,12 +18,12 @@
    if(!response.ok)throw Error('Card catalog unavailable');
    return response.json();
  }));
- const latest=await Promise.all(Array.from({length:22},(_,i)=>fetch('catalog/'+(135+i)+'.json').then(response=>{
+ const latest=await Promise.all(Array.from({length:24},(_,i)=>fetch('catalog/'+(135+i)+'.json').then(response=>{
    if(!response.ok)throw Error('New card catalog unavailable');
    return response.json();
  })));
  const expanded=catalog.concat(packs.flat(),latest);
- if(expanded.length!==157||expanded.some((card,id)=>card.id!==id))throw Error('Invalid card catalog');
+ if(expanded.length!==159||expanded.some((card,id)=>card.id!==id))throw Error('Invalid card catalog');
  page=page.slice(0,start)+JSON.stringify(expanded)+page.slice(end);
  page=page.replace("onlineFetch('/draw','POST',{count})","onlineFetch('/draw','POST',{count,catalog:cards.length})");
  page=page.replace("onlineFetch('/practice','POST',{})","onlineFetch('/practice','POST',{catalog:cards.length})");
