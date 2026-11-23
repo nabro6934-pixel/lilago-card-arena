@@ -230,7 +230,7 @@ function showDetail(id, copyIndex){
   if(!owned&&tab==='collection')return;
   const copies=cardCopies(id);
   const copy=copies[copyIndex]||copies.find(unit=>unit.serial);
-  const serial=copy?.serial?'#'+copy.serial:copy?.localSerial?'연습 #'+copy.localSerial:'';
+  const serial=copy?.serial?'#'+copy.serial:'';
   const selected=draft.includes(id);
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'덱에서 빼기':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
   detail.innerHTML=`<button class="icon-close" id="close-detail" aria-label="닫기">×</button>
@@ -340,7 +340,7 @@ function draw(count, local=false){
 function cardCopies(id){
   const issued=onlineProfile?.inventory.filter(u=>u.card===id)||[];
   const localCopies=profile.copies?.[id]||(profile.owned.includes(id)?1:0);
-  return [...Array.from({length:localCopies},(_,index)=>({localSerial:starter.includes(id)?index:index+1})),...issued];
+  return [...Array.from({length:localCopies},()=>({})),...issued];
 }
 function ownsCard(id){return cardCopies(id).length>0;}
 let replaceSlot=null;
@@ -372,7 +372,7 @@ let copySubject=null, copyReturn='collection';
 function renderCopies(){
   const card=cards[copySubject];
   const tiles=cardCopies(card.id).map((unit,i)=>{
-    const serial=unit.serial?'#'+unit.serial:unit.localSerial?'연습 #'+unit.localSerial:'기본 카드';
+    const serial=unit.serial?'#'+unit.serial:'기본 카드';
     const listed=marketItems.some(item=>item.id===unit.id);
     return `<article class="copy-tile">${cardHTML(card,{action:'copy-index',sub:serial,key:i})}<small>${listed?'판매 중':'보유 중'}</small></article>`;
   });
@@ -412,10 +412,10 @@ let homeMode='ai';
 function renderBattle(){
   if(!match){
     const hero=cards[(featuredId!==null&&ownsCard(featuredId)?featuredId:null)??profile.deck.find(ownsCard)??starter[0]];
-    const bannerCopy=cardCopies(hero.id).find(unit=>unit.serial||unit.localSerial);
+    const bannerCopy=cardCopies(hero.id).find(unit=>unit.serial);
     main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
     <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
-      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">대표 카드 변경</button></div><div class="home-art">${cardHTML(hero,{sub:bannerCopy?.serial?`#${bannerCopy.serial}`:bannerCopy?.localSerial?`연습 #${bannerCopy.localSerial}`:''})}</div></div>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">대표 카드 변경</button></div><div class="home-art">${cardHTML(hero,{sub:bannerCopy?.serial?`#${bannerCopy.serial}`:''})}</div></div>
     </section>
     <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
     ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
