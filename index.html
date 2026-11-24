@@ -18,12 +18,12 @@
    if(!response.ok)throw Error('Card catalog unavailable');
    return response.json();
  }));
- const latest=await Promise.all(Array.from({length:24},(_,i)=>fetch('catalog/'+(135+i)+'.json').then(response=>{
+ const latest=await Promise.all(Array.from({length:33},(_,i)=>fetch('catalog/'+(135+i)+'.json').then(response=>{
    if(!response.ok)throw Error('New card catalog unavailable');
    return response.json();
  })));
  const expanded=catalog.concat(packs.flat(),latest);
- if(expanded.length!==159||expanded.some((card,id)=>card.id!==id))throw Error('Invalid card catalog');
+ if(expanded.length!==168||expanded.some((card,id)=>card.id!==id))throw Error('Invalid card catalog');
  const template=await fetch('game-template.html');
  if(!template.ok)throw Error('Game template unavailable');
  page=(await template.text()).replace('/* CARD_DATA */',()=>JSON.stringify(expanded));
