@@ -22,11 +22,30 @@ function account(p) {
   p.stats ??= {};
   return p;
 }
+const retiredCards = new Set([163,166]);
+const activeCard = id => Boolean(cards[id]) && !retiredCards.has(id);
+const variants = [
+  {id:'sapphire',weight:700,price:4},
+  {id:'cobalt',weight:200,price:7},
+  {id:'emerald',weight:50,price:14},
+  {id:'gold',weight:10,price:32},
+  {id:'black',weight:1,price:100}
+];
+const variantById = Object.fromEntries(variants.map(v=>[v.id,v]));
+const editionKey = (card,variant) => variant ? card+':'+variant : card;
+function rollVariant(){
+  let roll=crypto.randomInt(10000);
+  for(const variant of variants){
+    if(roll<variant.weight)return variant.id;
+    roll-=variant.weight;
+  }
+  return null;
+}
 const startersFor = p => p.starters ?? starter;
 function profileCardFor(p) {
   const chosen = p.profileCard;
   const copy = chosen?.unit && p.inventory.find(u => u.id === chosen.unit && u.card === chosen.card);
-  if (copy) return {card:copy.card, serial:copy.serial};
+  if (copy && activeCard(copy.card)) return {card:copy.card, serial:copy.serial, variant:copy.variant};
   if (chosen && !chosen.unit && startersFor(p).includes(chosen.card)) return {card:chosen.card};
   return {card:startersFor(p)[0]};
 }
@@ -34,7 +53,7 @@ const publicPlayer = p => {
   const {id,name,frame,wins,losses,trophies}=account(p);
   return {id,name,frame,wins,losses,trophies,profileCard:profileCardFor(p)};
 };
-const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, canViewAllCards:!!ownerId && p.id===ownerId, inventory:p.inventory, stats:p.stats, starters:startersFor(p), deck:deckFor(p) });
+const privatePlayer = p => ({ ...publicPlayer(p), coins:p.coins, sharedPracticeWallet:true, canViewAllCards:!!ownerId && p.id===ownerId, inventory:p.inventory.filter(u=>activeCard(u.card)), stats:p.stats, starters:startersFor(p), deck:deckFor(p), deckCopies:deckCopiesFor(p,deckFor(p)) });
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 function persist() {
@@ -142,7 +161,13 @@ async function playerFor(req) {
   return account(player);
 }
 
-function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>p.inventory.some(u=>u.card===id)||startersFor(p).includes(id)),...startersFor(p)])].slice(0,6);}
+function deckFor(p){return [...new Set([...(p.deck||[]).filter(id=>activeCard(id)&&(p.inventory.some(u=>u.card===id)||startersFor(p).includes(id))),...startersFor(p)])].slice(0,6);}
+function deckCopiesFor(p,deck,copies=p.deckCopies){
+  return Object.fromEntries(deck.flatMap(card=>{
+    const id=copies?.[card];
+    return (id==='basic-0'&&startersFor(p).includes(card))||p.inventory.some(u=>u.id===id&&u.card===card) ? [[card,id]] : [];
+  }));
+}
 const sellable=(p,card)=>p.inventory.filter(u=>u.card===card&&!state.market[u.id]).length>1 || startersFor(p).includes(card);
 const saleWindow = 21 * 24 * 60 * 60 * 1000;
 function serialPremium(serial) {
@@ -152,21 +177,21 @@ function serialPremium(serial) {
   if (serial >= 4 && serial <= 10) return 1.23;
   return serial >= 11 && serial <= 25 ? 1.1 : 1;
 }
-function marketValue(card, supply, serial) {
+function marketValue(card, supply, serial, variant) {
   const rarityPrice = [0, 160, 360, 800][card.rar];
   const cardFactor = Math.max(.72, .7 + .006*card.atk + .0015*card.hp + .004*card.n);
-  const baseline = rarityPrice * cardFactor * Math.max(.36, 1.25/Math.sqrt(1+supply/30));
+  const baseline = rarityPrice * (variantById[variant]?.price??1) * cardFactor * Math.max(.36, 1.25/Math.sqrt(1+supply/30));
   const cutoff = Date.now() - saleWindow;
-  const samples = (state.marketSales[card.id] ?? []).filter(sale=>sale.time>=cutoff);
+  const samples = (state.marketSales[editionKey(card.id,variant)] ?? []).filter(sale=>sale.time>=cutoff);
   const normalized = samples.map(sale=>sale.price/serialPremium(sale.serial)).sort((a,b)=>a-b);
   const middle = Math.floor(normalized.length/2);
   const median = normalized.length%2 ? normalized[middle] : (normalized[middle-1]+normalized[middle])/2;
   const tradeWeight = Math.min(.6, normalized.length*.12);
   const demand = tradeWeight ? Math.max(baseline*.5, Math.min(baseline*3, median)) : baseline;
   const value = Math.round((baseline*(1-tradeWeight)+demand*tradeWeight)*serialPremium(serial));
-  return {value, supply, serial, recentSales:normalized.length};
+  return {value, supply, serial, variant, recentSales:normalized.length};
 }
-const marketList=()=>Object.values(state.market).map(item=>({...item,sellerName:state.players[item.seller].name}));
+const marketList=()=>Object.values(state.market).filter(item=>activeCard(item.card)).map(item=>({...item,sellerName:state.players[item.seller].name}));
 const handlers = new Map([
   ['POST /profile/new', (req, body) => {
     const name = text(body.name, 20);
@@ -196,7 +221,7 @@ const handlers = new Map([
   ['POST /profile/card', (req, body, p) => {
     const {card,unit}=body;
     const owned=unit ? p.inventory.some(u=>u.id===unit&&u.card===card) : startersFor(p).includes(card);
-    if(!Number.isInteger(card)||!cards[card]||!owned)throw error(400,'보유한 카드만 프로필에 사용할 수 있어.');
+    if(!Number.isInteger(card)||!activeCard(card)||!owned)throw error(400,'보유한 카드만 프로필에 사용할 수 있어.');
     p.profileCard=unit?{card,unit}:{card};
     persist();
     return privatePlayer(p);
@@ -227,8 +252,8 @@ const handlers = new Map([
   }],
   ['GET /requests', (req, body, p) => state.requests.filter(r => r.player === p.id).reverse()],
   ['POST /deck', (req, body, p) => {
-    if(!Array.isArray(body.deck)||body.deck.length!==6||new Set(body.deck).size!==6||body.deck.some(id=>!startersFor(p).includes(id)&&!p.inventory.some(u=>u.card===id)))throw error(400,'온라인 덱에 넣을 카드인지 확인해줘.');
-    p.deck=body.deck;persist();return {ok:true};
+    if(!Array.isArray(body.deck)||body.deck.length!==6||new Set(body.deck).size!==6||body.deck.some(id=>!Number.isInteger(id)||!activeCard(id)||(!startersFor(p).includes(id)&&!p.inventory.some(u=>u.card===id))))throw error(400,'온라인 덱에 넣을 카드인지 확인해줘.');
+    p.deck=body.deck;p.deckCopies=deckCopiesFor(p,p.deck,body.copies??p.deckCopies);persist();return {ok:true,deckCopies:p.deckCopies};
   }],
   ['POST /draw', (req, body, p) => {
     const count=body.count===10?10:1, price=count===10?900:100;
@@ -236,12 +261,14 @@ const handlers = new Map([
     if(p.coins<price)throw error(409,'코인이 부족해.');
     p.coins-=price;
     const results=Array.from({length:count},()=>{
-      const roll=Math.random(), pool=catalog.filter(c=>c.rar===(roll<.6?1:roll<.92?2:3));
+      const roll=Math.random(), pool=catalog.filter(c=>activeCard(c.id)&&c.rar===(roll<.6?1:roll<.92?2:3));
       const card=pool[crypto.randomInt(pool.length)].id;
-      const serial=state.serials[card]=(state.serials[card]||0)+1;
-      const unit={id:crypto.randomUUID(),card,serial};
+      const variant=body.editions===1 ? rollVariant() : null;
+      const key=editionKey(card,variant);
+      const serial=state.serials[key]=(state.serials[key]||0)+1;
+      const unit={id:crypto.randomUUID(),card,serial,...(variant?{variant}:{})};
       p.inventory.push(unit);
-      return {id:card,serial,duplicate:false};
+      return {id:card,serial,variant,duplicate:false};
     });
     persist();return {player:privatePlayer(p),results};
   }],
@@ -249,16 +276,18 @@ const handlers = new Map([
     const id = url.searchParams.get('card');
     const serial = url.searchParams.get('serial');
     const card = id!==null && /^\d+$/.test(id) ? cards[Number(id)] : null;
-    const supply = card ? state.serials[card.id] ?? 0 : 0;
-    if (!card || (serial!==null && (!/^[1-9]\d*$/.test(serial) || Number(serial)>supply))) {
+    const variant=url.searchParams.get('variant');
+    if(variant!==null&&!Object.hasOwn(variantById,variant))throw error(400,'카드 버전을 확인해 줘.');
+    const supply = card ? state.serials[editionKey(card.id,variant)] ?? 0 : 0;
+    if (!card || !activeCard(card.id) || (serial!==null && (!/^[1-9]\d*$/.test(serial) || Number(serial)>supply))) {
       throw error(400,'카드 번호를 확인해 줘.');
     }
-    return marketValue(card, supply, serial===null ? null : Number(serial));
+    return marketValue(card, supply, serial===null ? null : Number(serial), variant);
   }],
   ['GET /market', () => marketList()],
   ['POST /market/list', (req, body, p) => {
     const unit=p.inventory.find(u=>u.id===body.id);
-    if(!unit||state.market[unit.id])throw error(409,'판매할 카드를 확인해줘.');
+    if(!unit||!activeCard(unit.card)||state.market[unit.id])throw error(409,'판매할 카드를 확인해줘.');
     if(!sellable(p,unit.card))throw error(409,'중복 카드만 판매할 수 있어. 한 장은 덱에 남겨야 해.');
     if(!Number.isSafeInteger(body.price)||body.price<1||body.price>1_000_000)throw error(400,'가격은 1~1,000,000 코인으로 설정해줘.');
     state.market[unit.id]={...unit,price:body.price,seller:p.id};
@@ -270,7 +299,7 @@ const handlers = new Map([
   }],
   ['POST /market/buy', (req, body, p) => {
     const item=state.market[body.id];
-    if(!item||item.seller===p.id||item.price!==body.price)throw error(409,'거래 내용을 다시 확인해줘.');
+    if(!item||!activeCard(item.card)||item.seller===p.id||item.price!==body.price)throw error(409,'거래 내용을 다시 확인해줘.');
     if(p.coins<item.price)throw error(409,'코인이 부족해.');
     const seller=account(state.players[item.seller]);
     const unit=seller.inventory.find(u=>u.id===item.id);
@@ -279,9 +308,10 @@ const handlers = new Map([
     p.coins-=item.price;seller.coins+=item.price;
     seller.inventory=seller.inventory.filter(u=>u.id!==item.id);
     p.inventory.push(unit);delete state.market[item.id];
-    const sales = state.marketSales[unit.card] ?? [];
+    const key = editionKey(unit.card,unit.variant);
+    const sales = state.marketSales[key] ?? [];
     const now = Date.now();
-    state.marketSales[unit.card] = [{serial:unit.serial, price:item.price, time:now},
+    state.marketSales[key] = [{serial:unit.serial, price:item.price, time:now},
       ...sales.filter(sale=>sale.serial!==unit.serial&&sale.time>=now-saleWindow)].slice(0,12);
     persist();return {player:privatePlayer(p),market:marketList()};
   }],
@@ -289,7 +319,7 @@ const handlers = new Map([
     clean();
     const active=[...rooms.values()].find(room=>room.ai&&room.ids[0]===p.id&&room.winner===null);
     if(active)return view(active,p.id);
-    const botDeck=(body.catalog===cards.length?cards:cards.slice(0,[135,157,159].includes(body.catalog)?body.catalog:60)).map(c=>c.id);
+    const botDeck=(body.catalog===cards.length?cards:cards.slice(0,[135,157,159].includes(body.catalog)?body.catalog:60)).filter(c=>activeCard(c.id)).map(c=>c.id);
     for(let i=botDeck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[botDeck[i],botDeck[j]]=[botDeck[j],botDeck[i]];}
     const room={ai:true,id:crypto.randomUUID(),ids:[p.id],used:[[],[]],teams:[[],[]],hands:[deckFor(p),botDeck.slice(0,6)],moves:[null,null],turn:1,deadline:Date.now()+deadlineMs,winner:null,last:null};
     rooms.set(room.id,room);
