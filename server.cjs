@@ -232,7 +232,7 @@ const handlers = new Map([
   }],
   ['POST /draw', (req, body, p) => {
     const count=body.count===10?10:1, price=count===10?900:100;
-    const catalog=body.catalog===cards.length?cards:cards.slice(0,[135,157].includes(body.catalog)?body.catalog:60);
+    const catalog=body.catalog===cards.length?cards:cards.slice(0,[135,157,159].includes(body.catalog)?body.catalog:60);
     if(p.coins<price)throw error(409,'코인이 부족해.');
     p.coins-=price;
     const results=Array.from({length:count},()=>{
@@ -289,7 +289,7 @@ const handlers = new Map([
     clean();
     const active=[...rooms.values()].find(room=>room.ai&&room.ids[0]===p.id&&room.winner===null);
     if(active)return view(active,p.id);
-    const botDeck=(body.catalog===cards.length?cards:cards.slice(0,[135,157].includes(body.catalog)?body.catalog:60)).map(c=>c.id);
+    const botDeck=(body.catalog===cards.length?cards:cards.slice(0,[135,157,159].includes(body.catalog)?body.catalog:60)).map(c=>c.id);
     for(let i=botDeck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[botDeck[i],botDeck[j]]=[botDeck[j],botDeck[i]];}
     const room={ai:true,id:crypto.randomUUID(),ids:[p.id],used:[[],[]],teams:[[],[]],hands:[deckFor(p),botDeck.slice(0,6)],moves:[null,null],turn:1,deadline:Date.now()+deadlineMs,winner:null,last:null};
     rooms.set(room.id,room);
