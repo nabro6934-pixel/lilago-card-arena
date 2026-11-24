@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.lilago.cardarena",
+      "sha256_cert_fingerprints": [
+        "5B:BE:B1:E1:4B:07:6E:DF:1B:32:7B:0E:BD:87:B1:89:9A:78:6F:0D:B7:29:E6:CE:09:E1:D2:AE:1A:2A:47:C2"
+      ]
+    }
+  }
+]
