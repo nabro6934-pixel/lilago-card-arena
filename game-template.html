@@ -172,7 +172,6 @@ header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius
 .home-art>.card{width:min(100%,275px);margin:auto;box-shadow:0 24px 40px #05111bc9,0 0 40px #4fe3df26}
 .home-art .card .portrait{height:auto;aspect-ratio:1;filter:none}
 .home-art>.card:hover{box-shadow:0 24px 45px #001019bd,0 0 48px #59eae855}
-.card .meta .front-serial{font-size:clamp(14px,2vw,23px);font-weight:950;letter-spacing:.025em;color:#fdf8d9;background:#06192aeb;border:1px solid #a7efea8f;border-radius:6px;padding:3px 7px;box-shadow:0 4px 12px #04141bcc}
 .sub-head{display:grid;gap:12px;align-items:start;justify-items:start;padding:clamp(16px,4vw,35px);margin-bottom:18px;border:1px solid #3b7090;border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#28779b5c,transparent 65%),linear-gradient(125deg,#10283c,#16415b);box-shadow:inset 0 1px #9eefe323,0 10px 24px #06141e66}
 .sub-head p{margin:0}
 .copy-gallery{grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr))}
@@ -188,7 +187,7 @@ header>div{min-height:66px;padding:8px 16px}nav{background:#102139;border-radius
 @keyframes panel-entry{from{opacity:0;translate:0 7px}to{opacity:1;translate:0 0}}
 .home-play button:hover:enabled{background:#ff8290;filter:drop-shadow(0 0 10px #ff687b)}
 .home-tools button:hover,.home-tabs button:hover,.online-list li:hover{border-color:#7ef3d9;background-color:#204763}
-header[hidden]{display:none!important}
+header[hidden],#developer-tab[hidden]{display:none!important}
 
 .cardbody .name{display:block;min-width:0;max-width:100%;overflow:hidden;container-type:inline-size;white-space:nowrap}
 .cardbody .name > .name-text{display:inline-block;width:max-content;max-width:none;white-space:nowrap;animation:card-name-pan 12s ease-in-out infinite}
@@ -197,12 +196,11 @@ header[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.cardbody .name>.name-text{animation:none}.cardbody .name{text-overflow:ellipsis}.cardbody .name>.name-text{display:inline}}
 
 .card .art-field{position:relative}
-.card .art-field .front-serial,.physical-back .back-serial{
+.physical-back .back-serial{
   color:#f5e5ad;font-weight:900;letter-spacing:.09em;
   text-shadow:0 -1px 0 #2b2319,0 1px 0 #fff3c590,0 0 7px #ffc76e70;
   font-variant-numeric:tabular-nums;
 }
-.card .art-field .front-serial{position:absolute;z-index:2;right:7%;bottom:5%;font-size:clamp(11px,1.65vw,20px);pointer-events:none}
 .home-card-motion{width:min(100%,275px);position:relative;animation:home-card-spin 12s linear infinite;transform-style:preserve-3d}
 .home-card-motion .card{box-shadow:0 24px 40px #05111bc9,0 0 40px #4fe3df26}
 .home-card-front,.home-card-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
@@ -218,7 +216,6 @@ header[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.home-card-motion{animation:none}}
 
 
-.card .art-field .front-serial.serial-backed{padding:.18em .42em;border-radius:4px;background:#454a50;color:#ffe3a0;text-shadow:0 -1px 0 #292219,0 1px 1px #17191c,0 0 6px #ffca6ca0;font-weight:950;line-height:1.15;white-space:nowrap}
 
 .card-value{display:grid;gap:2px;line-height:1.3;margin-block:6px}
 .card-value small{font-size:10px;letter-spacing:.02em;color:#cae1dc}
@@ -232,16 +229,32 @@ header[hidden]{display:none!important}
  repeating-linear-gradient(48deg,#ffffff08 0 1px,transparent 1px 14px),
  radial-gradient(ellipse at 38% 24%,var(--edition-light),var(--edition-dark) 75%);
 }
-.card[data-edition] .cardbody{background:linear-gradient(145deg,var(--edition-light),var(--edition-dark));color:#fff}
-.card[data-edition] .edition-name{color:#fff4d7;font-size:clamp(8px,1.15vw,12px);font-weight:900;text-shadow:0 1px 2px #141414}
-.card[data-edition="sapphire"]{--edition-light:#496584;--edition-dark:#18283f;--edition-edge:#849ebd}
+.card[data-edition="sapphire"]{--edition-light:#864253;--edition-dark:#311322;--edition-edge:#c88494}
 .card[data-edition="cobalt"]{--edition-light:#48578d;--edition-dark:#191c49;--edition-edge:#9199c5}
 .card[data-edition="emerald"]{--edition-light:#467969;--edition-dark:#142f2a;--edition-edge:#85b4a4}
 .card[data-edition="gold"]{--edition-light:#8c7348;--edition-dark:#3b2d1e;--edition-edge:#d4b482}
 .card[data-edition="black"]{--edition-light:#444751;--edition-dark:#111217;--edition-edge:#a6a3ad}
 .edition-detail{color:#ffe0a1;font-weight:800}
+
+.card .cardbody{position:relative;color:var(--card-caption-ink,#1d292b)}
+.card .cardbody .stats,.card .cardbody .skill{color:inherit}
+.card .cardbody:has(.front-serial) .stats,.card .cardbody:has(.front-serial) .skill{padding-right:4.6em}
+.card .cardbody .front-serial{position:absolute;right:6%;bottom:6%;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(9px,1.5vw,20px);color:#704811;font-weight:950;letter-spacing:.04em;font-variant-numeric:tabular-nums;text-shadow:0 1px #fff5c6,0 0 5px #ffe099;pointer-events:none}
+.card[data-caption-tone="dark"]{--card-caption-ink:#fff}
+.physical-back .back-description{color:#fff;letter-spacing:normal;font-size:11px;line-height:1.35;padding-inline:8px}
+.deck-card-view{min-width:0;position:relative;perspective:700px}
+.deck-card-rotor{position:relative;transform-style:preserve-3d}
+.deck-card-rotor > .card{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.deck-card-rotor > .physical-back{gap:4px;font-size:12px}
+.deck-card-rotor .back-serial{font-size:clamp(15px,2vw,28px)}
+.deck-card-rotor .brand-seal{margin:auto;width:24px;height:24px;font-size:16px}
+@media(hover:hover) and (pointer:fine){
+ [data-pc-card]{cursor:grab;user-select:none}
+ [data-pc-card].dragging{cursor:grabbing}
+ .home-card-motion.held{animation:none}
+}
 </style></head>
-<body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button></nav></header>
+<body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button><button id="developer-tab" type="button" hidden>개발자 서버 ↗</button></nav></header>
 <div id="arena-loading" class="arena-loading"><div><span>◇</span><h1>릴라고 카드 아레나</h1><div class="load-track"><i></i></div><p>아레나 입장 중</p></div></div><dialog id="welcome"><div class="welcome-body"><h2>프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" maxlength="20" required></label><label>프로필 테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">입장</button><p id="welcome-status" role="status"></p></form></div></dialog><main id="main"></main><dialog id="detail"></dialog><dialog id="music-settings"></dialog>
 <script>
 const cards = /* CARD_DATA */;
@@ -270,12 +283,11 @@ const effectText={
 revive:n=>`처음 쓰러질 때 체력 ${n}으로 한 번 부활.`,splash:n=>`일반 공격 때 인접 구역의 맨 앞 적에게 각각 ${n} 피해.`,burn:n=>`배치 시 맞은편 맨 앞 적에게 화상. 해당 턴과 다음 턴 공격 후 ${n} 피해.`,finisher:n=>`체력이 절반 이하인 적에게 일반 공격 피해 +${n}.`,cleave:n=>`일반 공격 때 같은 구역의 두 번째 적에게 ${n} 피해.`,rally:n=>`배치 시 자신을 제외한 아군 전체의 공격력 +${n}.`,ambush:n=>`배치 시 맞은편 맨 앞 적에게 ${n} 피해.`,pull:n=>`맞은편이 비어 있으면 인접 구역의 맨 앞 적 하나를 끌어옴. 맞은편 적에게 ${n} 피해.`,armor:n=>`받는 일반 공격 피해 ${n} 감소.`,growth:n=>`생존한 턴이 끝날 때마다 공격력 +${n}.`,laststand:n=>`턴 시작 공격 계산 시 체력이 절반 이하면 공격력 +${n}.`,retort:n=>`일반 공격에 맞으면 공격자에게 ${n} 반격 피해.`,stagger:n=>`배치한 턴에 맞은편 맨 앞 적의 공격력 ${n} 감소.`,bond:n=>`다른 아군이 같은 구역에 있으면 일반 공격 피해 +${n}.`,push:n=>`배치 시 맞은편 맨 앞 적에게 ${n} 피해 후 인접 구역으로 밀어냄.`,ward:n=>`배치 시 인접 구역 아군 전체와 자신에게 보호막 ${n}.`,pierce:n=>`일반 공격에 보호막을 무시하는 ${n} 추가 피해.`,heavies:n=>`최대 체력 90 이상인 적에게 일반 공격 피해 +${n}.`,empty:n=>`맞은편에 적이 없으면 인접 구역 맨 앞 적 하나에게 ${n} 피해.`,weaken:n=>`배치 시 같은 구역 적 전체의 공격력 ${n} 감소.`,guard:n=>`배치 시 자신의 보호막 +${n}.`,flank:n=>`바깥 구역에서 일반 공격 피해 +${n}.`,heal:n=>`배치 시 다른 아군 중 가장 많이 다친 카드 하나의 체력 ${n} 회복.`,solo:n=>`같은 구역에 혼자 있으면 일반 공격 피해 +${n}.`,veil:n=>`처음 받는 피해를 최대 ${n}만큼 감소.`,aid:n=>`배치 시 자신과 인접 구역 아군의 체력 ${n} 회복.`,swap:n=>`배치 시 자기 구역과 인접 구역의 맨 앞 적을 교환하고 새 맞은편 맨 앞 적에게 ${n} 피해.`,echo:n=>`턴 3부터 일반 공격에 분신 피해 ${n} 추가.`,snack:n=>`생존한 턴이 끝날 때마다 체력 ${n} 회복.`,combo:n=>`두 번째 일반 공격마다 피해 +${n}.`,drain:n=>`일반 공격이 체력을 깎으면 자신이 최대 ${n} 회복.`,lock:n=>`배치 시 맞은편 맨 앞 적의 이동을 이번 턴 막고 ${n} 피해.`,beat:n=>`1·3·5턴 일반 공격 피해 +${n}.`,taunt:n=>`배치 즉시 내 구역의 맨 앞에 서고 보호막 ${n} 획득.`
 };
 const desc=c=>effectText[c.fx](c.n);
-const serialBackingCards=new Set([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 25, 27, 29, 30, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 46, 47, 48, 50, 51, 52, 53, 54, 56, 57, 58, 59, 61, 62, 63, 64, 65, 67, 69, 70, 71, 72, 73, 76, 77, 79, 80, 81, 82, 85, 89, 91, 92, 93, 94, 95, 96, 97, 98, 101, 105, 108, 110, 111, 112, 113, 114, 117, 118, 119, 120, 121, 124, 125, 131, 132, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 155, 157, 158]);
 const retiredCards=new Set([163,166]);
-const cardEditions={sapphire:'사파이어',cobalt:'코발트',emerald:'에메랄드',gold:'골드',black:'블랙'};
+const cardEditions={sapphire:'루비',cobalt:'코발트',emerald:'에메랄드',gold:'골드',black:'블랙'};
 const editionName=variant=>cardEditions[variant]||'기본';
 function cardHTML(c,{variant=null,action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id}={}){
-  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="">${sub.startsWith('#')?`<span class="front-serial${serialBackingCards.has(c.id)?' serial-backed':''}">${sub}</span>`:''}</span><span class="cardbody"><span class="meta"><span class="edition-name">${variant?editionName(variant):''}</span><span>${sub.startsWith('#')?'':sub}</span></span><span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
+  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt=""></span><span class="cardbody">${sub&&!sub.startsWith('#')?`<span class="meta">${sub}</span>`:''}${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}<span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
 }
 function valueMarkup(id,serial,showSupply=false,variant=null){
   return `<span class="card-value" data-card-value="${id}" data-value-serial="${serial||''}" data-value-variant="${variant||''}"${showSupply?' data-value-supply':''}><small>추정 시장가</small><strong>확인 중…</strong>${showSupply?'<small data-supply-label></small>':''}</span>`;
@@ -305,6 +317,48 @@ function refreshCardValues(){
     }
   }
 }
+function cardBack(c,copy,extra=''){
+  const serial=copyLabel(copy);
+  return `<div class="physical-face physical-back ${extra}" aria-hidden="true">${seal}${serial?`<strong class="back-serial">${serial}</strong>`:''}<span class="back-description">${c.skill}<br>${desc(c)}</span>${valueMarkup(c.id,copy?.serial,false,copy?.variant)}</div>`;
+}
+const mouseCardRotation=matchMedia('(hover:hover) and (pointer:fine)');
+function bindMouseCardRotation(stage){
+  if(!stage)return;
+  const rotor=stage.firstElementChild;
+  let drag=null,suppressClick=false;
+  stage.addEventListener('pointerdown',event=>{
+    if(!mouseCardRotation.matches||event.pointerType!=='mouse'||event.button!==0||drag)return;
+    const transform=getComputedStyle(rotor).transform;
+    drag={id:event.pointerId,startX:event.clientX,startY:event.clientY,transform,moved:false};
+    rotor.style.transform=transform;
+    rotor.classList.add('held');
+    stage.classList.add('dragging');
+  });
+  stage.addEventListener('pointermove',event=>{
+    if(drag?.id!==event.pointerId)return;
+    const dx=event.clientX-drag.startX,dy=event.clientY-drag.startY;
+    if(!drag.moved&&Math.hypot(dx,dy)<4)return;
+    if(!drag.moved)stage.setPointerCapture(event.pointerId);
+    drag.moved=true;
+    const base=drag.transform==='none'?'':drag.transform;
+    rotor.style.transform=`rotateX(${-dy*.65}deg) rotateY(${dx*.85}deg) ${base}`;
+  });
+  function release(event){
+    if(drag?.id!==event.pointerId)return;
+    suppressClick=drag.moved;
+    drag=null;
+    stage.classList.remove('dragging');
+    rotor.style.removeProperty('transform');
+    rotor.classList.remove('held');
+    setTimeout(()=>{suppressClick=false;},0);
+  }
+  stage.addEventListener('pointerup',release);
+  stage.addEventListener('pointerleave',event=>{if(drag&&!drag.moved)release(event);});
+  stage.addEventListener('pointercancel',release);
+  stage.addEventListener('click',event=>{
+    if(suppressClick){event.preventDefault();event.stopPropagation();}
+  },true);
+}
 function showDetail(id, copyIndex){
   if(retiredCards.has(id))return;
   const c=cards[id];
@@ -318,7 +372,7 @@ function showDetail(id, copyIndex){
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'사본 변경':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
   detail.innerHTML=`<button class="icon-close" id="close-detail" aria-label="닫기">×</button>
   <div class="inspection"><div class="inspection-view"><div class="turntable" tabindex="0" role="group" aria-label="카드 회전. 방향키 또는 드래그로 돌리기" data-turntable>
-  <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial,variant:copy?.variant})}</div><div class="physical-face physical-back">${seal}${serial?`<strong class="back-serial">${serial}</strong>`:''}${valueMarkup(id,copy?.serial,false,copy?.variant)}</div><div class="physical-edge"></div></div>
+  <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial,variant:copy?.variant})}</div>${cardBack(c,copy)}<div class="physical-edge"></div></div>
   </div><div class="turntable-controls"><span>마우스를 올려 회전 · 드래그로 뒤집기</span><button class="btn" id="flip-card">앞뒤 보기</button><button class="btn" id="reset-card">정면</button></div></div>
   <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2>${copy?.variant?`<p class="edition-detail">${editionName(copy.variant)} · ${serial}</p>`:''}${valueMarkup(id,copy?.serial,true,copy?.variant)}<div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${deckAction}</div></div>`;
   const stage=detail.querySelector('[data-turntable]');
@@ -370,6 +424,7 @@ function updateHeader(){
   toggle.textContent=soundOn?'효과음 켜짐':'효과음 꺼짐';
   document.querySelector('#ai-coins').textContent=onlineProfile&&!onlineProfile.sharedPracticeWallet?`연습 ${profile.coins.toLocaleString()} 코인`:'';
   document.querySelector('#coins').textContent=`◈ ${(onlineProfile?.coins??profile.coins).toLocaleString()} 코인`;
+  document.querySelector('#developer-tab').hidden=onlineProfile?.canOpenDeveloperBuild!==true;
   document.querySelectorAll('[data-tab]').forEach(b=>{b.toggleAttribute('aria-current',b.dataset.tab===tab&&(!b.dataset.panel||b.dataset.panel===onlinePanel));});
 }
 function render(){document.querySelector('header').hidden=tab==='matching'||(tab==='battle'&&!!match);updateLobbyMusic();updateHeader();({battle:renderBattle,pack:renderPack,collection:renderCollection,online:renderOnline,copies:renderCopies,featured:renderFeatured,matching:renderMatching})[tab]();}
@@ -397,7 +452,7 @@ function playSound(kind){
 }
 function renderPack(){
   const result=packResults.map(({id,duplicate,serial,variant},idx)=>cardHTML(cards[id],{idx,variant,action:'pack-copy',key:idx,sub:serial?'#'+serial:duplicate?'중복 카드':'신규'})).join('');
-  main.innerHTML=`<section class="pack-heading"><div><div class="eyebrow">카드 팩</div><h1>카드 뽑기</h1></div><div class="odds">사파이어 7% · 코발트 2% · 에메랄드 0.5% · 골드 0.1% · 블랙 0.01%</div></section>
+  main.innerHTML=`<section class="pack-heading"><div><div class="eyebrow">카드 팩</div><h1>카드 뽑기</h1></div><div class="odds">루비 7% · 코발트 2% · 에메랄드 0.5% · 골드 0.1% · 블랙 0.01%</div></section>
   <section class="pack-stage ${opening?'opening':''}" aria-live="polite">
   <div class="pack-portal" aria-hidden="true"></div>
   ${result&&!opening?`<div class="grid revealed ${packResults.length===1?'single':''}">${result}</div>`:`<div class="pack"><div class="pack-half pack-top"></div><div class="pack-half pack-bottom"></div><div class="pack-mark">${seal}</div></div>`}
@@ -480,9 +535,16 @@ function collectionGrid(){
   document.querySelector('#collection-grid').innerHTML=section('보유 카드',owned)+(canViewAllCards()?section('미보유 카드',missing):'');
   document.querySelector('#deck-slots').innerHTML=Array.from({length:6},(_,i)=>draft[i]===undefined
     ? `<button class="btn deck-slot deck-empty" disabled><span>${i+1}</span>빈 슬롯</button>`
-    : cardHTML(cards[draft[i]],{action:'slot',key:i,pressed:i===replaceSlot,sub:copyLabel(equippedCopy(draft[i],draftCopies[draft[i]])),variant:equippedCopy(draft[i],draftCopies[draft[i]])?.variant})).join('');
+    : deckSlotHTML(i)).join('');
+  document.querySelectorAll('#deck-slots [data-pc-card]').forEach(bindMouseCardRotation);
+  refreshCardValues();
   document.querySelector('#deckcount').textContent=`덱 ${draft.length}/6 · 보유 ${cards.filter(c=>ownsCard(c.id)).length}/${cards.length-retiredCards.size}종`;
   document.querySelector('#save-deck').disabled=draft.length!==6;
+}
+function deckSlotHTML(i){
+  const card=cards[draft[i]];
+  const copy=equippedCopy(card.id,draftCopies[card.id]);
+  return `<div class="deck-card-view" data-pc-card><div class="deck-card-rotor">${cardHTML(card,{action:'slot',key:i,pressed:i===replaceSlot,sub:copyLabel(copy),variant:copy?.variant})}${cardBack(card,copy)}</div></div>`;
 }
 function renderCollection(){
   main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">저장</button></div><div id="deck-slots"></div><div id="deck-message" role="status"></div><p>덱에서 교체할 자리를 누른 뒤, 보유 카드의 교체 버튼을 눌러.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div id="collection-grid"></div>';
@@ -537,10 +599,11 @@ function renderBattle(){
     const bannerCopy=equippedCopy(hero.id,featuredId===hero.id?featuredCopy:profile.deckCopies?.[hero.id]);
     main.innerHTML=`<div class="home-tools"><button data-go="online" data-panel="request">＋ 신규 카드 요청</button><button data-go="online" data-panel="market">◇ 카드 시장</button></div>
     <section class="home-showcase"><aside><button data-go="online" data-panel="friends">♧ 친구</button><button data-go="online" data-panel="rank">🏆 랭킹</button></aside>
-      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art"><div class="home-card-motion"><div class="home-card-front">${cardHTML(hero,{action:'home-copy',variant:(onlineProfile?onlineProfile.profileCard:bannerCopy)?.variant,sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div><div class="physical-face physical-back home-card-back" aria-hidden="true">${seal}${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)?`<strong class="back-serial">${copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)}</strong>`:''}${valueMarkup(hero.id,(onlineProfile?onlineProfile.profileCard:bannerCopy)?.serial,false,(onlineProfile?onlineProfile.profileCard:bannerCopy)?.variant)}</div></div></div></div>
+      <div class="home-fighter"><div><span class="eyebrow">대표 카드</span><h1>${hero.name}</h1><p>공격 ${hero.atk} · 체력 ${hero.hp}</p><button class="btn" data-go="collection">덱 편집 ›</button> <button class="btn" data-go="featured">프로필 카드 변경</button></div><div class="home-art" data-pc-card><div class="home-card-motion"><div class="home-card-front">${cardHTML(hero,{action:'home-copy',variant:(onlineProfile?onlineProfile.profileCard:bannerCopy)?.variant,sub:copyLabel(onlineProfile?onlineProfile.profileCard:bannerCopy)||''})}</div>${cardBack(hero,onlineProfile?onlineProfile.profileCard:bannerCopy,'home-card-back')}</div></div></div>
     </section>
     <div class="home-play"><label>대전 모드<select id="home-mode" aria-label="대전 모드"><option value="ai" ${homeMode==='ai'?'selected':''}>연습 대전</option><option value="online" ${homeMode==='online'?'selected':''}>온라인 1대1</option></select></label><button id="play-selected" ${queued||queueStarting?'disabled':''}>${queueStarting?'연결 중…':'플레이 ▸'}</button></div>
     ${queueNotice?`<p role="status">${escapeHTML(queueNotice)}</p>`:''}<div class="home-tabs"><button data-go="online" data-panel="rank">🏆 랭킹</button><button data-go="collection">▤ 카드 · 덱</button><button data-go="pack">◇ 뽑기</button><button data-go="online" data-panel="market">◇ 시장</button><button data-go="online" data-panel="profile">◈ 프로필</button></div>`;
+    bindMouseCardRotation(main.querySelector('.home-art'));
     refreshCardValues();
     return;
   }
@@ -739,8 +802,25 @@ function commit(){
   },reduced?10:550);
 }
 
+async function openDeveloperBuild(button){
+  if(onlineProfile?.canOpenDeveloperBuild!==true)return;
+  const page=window.open('about:blank','_blank');
+  if(!page){button.title='브라우저에서 새 탭 열기를 허용해 줘.';return;}
+  page.opener=null;
+  page.document.body.textContent='개발자 서버에 연결 중…';
+  button.disabled=true;
+  try{
+    const {ticket}=await onlineFetch('/developer/ticket','POST');
+    const url=new URL('/developer/play',onlineBase);
+    url.searchParams.set('ticket',ticket);
+    page.location.replace(url.href);
+  }catch(error){
+    if(!page.closed)page.document.body.textContent=error.message;
+  }finally{button.disabled=false;}
+}
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.id==='developer-tab'){void openDeveloperBuild(b);return;}
   const {tab:dest,go,detail:id,pick,lane,draw:count,deck}=b.dataset;
   if(dest||go){if(go==='featured')featureReturn=tab;if(match&&tab==='battle')return;if(b.dataset.panel)onlinePanel=b.dataset.panel;tab=dest||go;render();return;}
   if(b.dataset.openCopies!==undefined){selectCopy(+b.dataset.openCopies,null);return;}
@@ -825,7 +905,7 @@ async function onlineFetch(route,method='GET',body){
   if(body)headers['Content-Type']='application/json';
   const response=await fetch(onlineBase+route,{method,headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(40000)});
   if(response.status===401&&token){
-    token='';onlineProfile=null;
+    token='';onlineProfile=null;updateHeader();
     try{localStorage.removeItem('lilago-online-token');}catch{}
   }
   const result=await response.json();
