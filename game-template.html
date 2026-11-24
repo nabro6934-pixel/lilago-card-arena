@@ -8,7 +8,7 @@ header{border-bottom:1px solid var(--line);background:#13141ddd}header>div{max-w
 nav{max-width:1200px;margin:auto;display:flex;padding:0 22px;gap:8px}nav button{border:0;border-bottom:2px solid transparent;background:none;padding:12px 14px;color:var(--muted);font-weight:700}nav [aria-current]{color:var(--gold);border-bottom-color:var(--gold)}
 main{max-width:1200px;margin:auto;padding:28px 22px 60px}h1{margin:0;font-size:clamp(28px,6vw,52px);letter-spacing:-.08em}p{line-height:1.6;color:var(--muted)}.eyebrow{color:var(--gold);font-size:12px;letter-spacing:.16em;font-weight:800}.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}.btn,input,select{border:1px solid #565063;border-radius:9px;background:#262434;padding:10px 14px}.primary{background:var(--gold);color:#211722;border-color:var(--gold);font-weight:900}.btn:hover:enabled{filter:brightness(1.15)}
 .hero{min-height:325px;display:flex;align-items:center;padding:clamp(20px,5vw,55px);border:1px solid #524463;border-radius:20px;background:linear-gradient(90deg,#1a1429 15%,#261a3be6 53%,#261a3b30),var(--hero) center right / auto 135% no-repeat,#241b35}.hero p{max-width:420px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}.card{position:relative;isolation:isolate;display:flex;flex-direction:column;width:100%;min-width:0;text-align:left;border-radius:13px;overflow:hidden;padding:0;border:1px solid var(--foil);background:linear-gradient(145deg,color-mix(in srgb,var(--foil) 25%,#151421),#141620 65%);box-shadow:0 6px 18px #0006;transition:transform .18s,box-shadow .18s}.card:hover,.card[aria-pressed=true]{transform:translateY(-3px);box-shadow:0 0 20px color-mix(in srgb,var(--foil) 42%,transparent)}.card:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(120deg,transparent 32%,#fff3 49%,transparent 65%);transform:translateX(-110%)}.card:hover:after,.revealed .card:after{animation:shine .8s both}.portrait{width:100%;aspect-ratio:1.14;object-fit:contain;background:radial-gradient(ellipse,color-mix(in srgb,var(--foil) 35%,#2d253e),#151522 78%);display:block}.cardbody{display:grid;gap:5px;padding:9px;flex:1;align-content:start}.meta{display:flex;justify-content:space-between;color:var(--foil);font-size:10px;font-weight:800;gap:3px}.name{font-weight:900;overflow-wrap:anywhere;line-height:1.2}.stats{color:#e7e3ee;font-size:12px}.skill{font-size:11px;color:var(--foil);font-weight:750}.unowned .portrait{filter:saturate(.3) brightness(.63)}.selected{outline:2px solid var(--mint);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}.card{position:relative;isolation:isolate;display:flex;flex-direction:column;width:100%;min-width:0;text-align:left;border-radius:13px;overflow:hidden;padding:0;border:1px solid var(--foil);background:linear-gradient(145deg,color-mix(in srgb,var(--foil) 25%,#151421),#141620 65%);box-shadow:0 6px 18px #0006;transition:transform .18s,box-shadow .18s}.card:hover,.card[aria-pressed=true]{transform:translateY(-3px);box-shadow:0 0 20px color-mix(in srgb,var(--foil) 42%,transparent)}.card:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(120deg,transparent 32%,#fff3 49%,transparent 65%);transform:translateX(-110%)}.portrait{width:100%;aspect-ratio:1.14;object-fit:contain;background:radial-gradient(ellipse,color-mix(in srgb,var(--foil) 35%,#2d253e),#151522 78%);display:block}.cardbody{display:grid;gap:5px;padding:9px;flex:1;align-content:start}.meta{display:flex;justify-content:space-between;color:var(--foil);font-size:10px;font-weight:800;gap:3px}.name{font-weight:900;overflow-wrap:anywhere;line-height:1.2}.stats{color:#e7e3ee;font-size:12px}.skill{font-size:11px;color:var(--foil);font-weight:750}.unowned .portrait{filter:saturate(.3) brightness(.63)}.selected{outline:2px solid var(--mint);outline-offset:2px}
 .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.lane{position:relative;background:linear-gradient(#34243899,#1d2133);border:1px solid var(--line);border-radius:13px;padding:9px;min-width:0}.lane.chosen{border-color:var(--mint);box-shadow:0 0 18px #62ead044}.lane.adv{border-color:#537f78}.lane.behind{border-color:#8b5367}.lane-title{width:100%;padding:7px 2px;border:1px solid #544761;border-radius:7px;background:#22202e;font-weight:800}.lane-title[aria-pressed=true]{color:var(--mint);border-color:var(--mint)}.lane-score{text-align:center;font-size:12px;color:var(--muted);margin:7px 0}.units{display:flex;gap:4px;flex-wrap:wrap;min-height:65px;justify-content:center;align-items:center}.unit{padding:2px;background:#161923;border:1px solid var(--foil);width:clamp(33px,9vw,65px);border-radius:6px;overflow:hidden;text-align:center}.unit img{display:block;width:100%;aspect-ratio:1;object-fit:contain}.unit span{font-size:10px;display:block;background:#141624}.enemy .unit span{color:#ffb3c8}.ally .unit span{color:var(--mint)}.strike .unit{animation:hit .55s both}.strike .lane-score{animation:flash .55s both}
 .hand{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}.hand .card[aria-pressed=true]{outline:2px solid var(--mint)}.hand .card:disabled{filter:grayscale(.6);opacity:.35}.hand .portrait{aspect-ratio:1.35}.hand .cardbody{padding:6px}.hand .name{font-size:12px}.log{max-height:150px;overflow:auto;color:var(--muted);font-size:13px;background:#181925;border-radius:9px;padding:10px 12px}.log div+div{margin-top:4px}.status{min-height:24px;color:var(--mint);font-weight:800}.rules{color:var(--muted);line-height:1.6;margin:12px 0}.rules summary{cursor:pointer;color:var(--ink)}
 .pack-stage{min-height:310px;border:1px solid #58496b;border-radius:18px;display:grid;place-items:center;background:radial-gradient(ellipse,#4c2d65,#1b1728 68%);overflow:hidden}.pack{display:grid;place-content:center;text-align:center;width:154px;height:220px;border:2px solid #ffda92;border-radius:12px;color:var(--gold);background:repeating-linear-gradient(135deg,#ffffff09 0 1px,transparent 1px 9px),linear-gradient(135deg,#35274a,#121524 60%,#4a315a);box-shadow:0 0 35px #e6a1ff5e,inset 0 0 20px #ffd17544;font-size:20px;font-weight:900;letter-spacing:.08em}.pack b{font-size:54px}.opening .pack{animation:open .65s both}.revealed{padding:16px;width:100%}.revealed .card{animation:reveal .55s both;animation-delay:calc(var(--i) * 45ms)}.revealed .meta{color:var(--gold)}
@@ -253,6 +253,15 @@ header[hidden],#developer-tab[hidden]{display:none!important}
  [data-pc-card].dragging{cursor:grabbing}
  .home-card-motion.held{animation:none}
 }
+
+.card .meta{display:flex;justify-content:flex-end}
+.card .meta span{padding:3px 5px;background:#142128ee;color:white}
+.card .cardbody .front-serial{font-size:clamp(11px,1.55vw,21px);right:5%;bottom:7%;color:#65410d;text-shadow:0 1px #fff5c6,0 0 6px #ffd268}
+.card .cardbody:has(.front-serial) .skill{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card[data-edition] .art-field{box-shadow:inset 0 0 14px color-mix(in srgb,var(--edition-edge) 42%,transparent)}
+.card:not(.unowned):after{z-index:3;animation:card-gloss 5s ease-in-out infinite;animation-delay:calc(var(--i,0) * -125ms)}
+@keyframes card-gloss{0%{transform:translateX(-110%)} 17%,100%{transform:translateX(110%)}}
+@media(prefers-reduced-motion:reduce){.card:not(.unowned):after{animation:none}}
 </style></head>
 <body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button><button id="developer-tab" type="button" hidden>개발자 서버 ↗</button></nav></header>
 <div id="arena-loading" class="arena-loading"><div><span>◇</span><h1>릴라고 카드 아레나</h1><div class="load-track"><i></i></div><p>아레나 입장 중</p></div></div><dialog id="welcome"><div class="welcome-body"><h2>프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" maxlength="20" required></label><label>프로필 테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">입장</button><p id="welcome-status" role="status"></p></form></div></dialog><main id="main"></main><dialog id="detail"></dialog><dialog id="music-settings"></dialog>
@@ -271,7 +280,7 @@ function load(){
     if(!data)return fresh;
     const owned=[...new Set([...starter,...data.owned.filter(id=>cards[id])])];
     const deck=[...new Set(data.deck.filter(id=>Number.isInteger(id)&&cards[id]))];
-    return {coins:Number.isSafeInteger(data.coins)&&data.coins>=0?data.coins:600,owned,deck:deck.length===6?deck:starter,wins:Number.isSafeInteger(data.wins)?data.wins:0,stats:data.stats||{},copies:data.copies||{},deckCopies:data.deckCopies||{}};
+    return {coins:Number.isSafeInteger(data.coins)&&data.coins>=0?data.coins:600,owned,deck:deck.length===6?deck:starter,wins:Number.isSafeInteger(data.wins)?data.wins:0,stats:data.stats||{},copies:data.copies||{},collectionCopies:data.collectionCopies,deckCopies:data.deckCopies||{}};
   }catch{return fresh;}
 }
 let profile=load(), match=null, tab='battle', draft=[...profile.deck], query='', packResults=[], opening=false;
@@ -286,8 +295,8 @@ const desc=c=>effectText[c.fx](c.n);
 const retiredCards=new Set([163,166]);
 const cardEditions={sapphire:'루비',cobalt:'코발트',emerald:'에메랄드',gold:'골드',black:'블랙'};
 const editionName=variant=>cardEditions[variant]||'기본';
-function cardHTML(c,{variant=null,action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id}={}){
-  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="" draggable="false"></span><span class="cardbody">${sub&&!sub.startsWith('#')?`<span class="meta">${sub}</span>`:''}${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}<span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
+function cardHTML(c,{variant=null,action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id,badge=''}={}){
+  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="" draggable="false">${badge||sub&&!sub.startsWith('#')?`<span class="meta"><span>${badge||sub}</span></span>`:''}</span><span class="cardbody">${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}<span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
 }
 function valueMarkup(id,serial,showSupply=false,variant=null){
   return `<span class="card-value" data-card-value="${id}" data-value-serial="${serial||''}" data-value-variant="${variant||''}"${showSupply?' data-value-supply':''}><small>추정 시장가</small><strong>확인 중…</strong>${showSupply?'<small data-supply-label></small>':''}</span>`;
@@ -366,7 +375,7 @@ function showDetail(id, copyIndex){
   const local=profile.stats?.[id], ranked=onlineProfile?.stats?.[id];
   if(!owned&&tab==='collection'&&!canViewAllCards())return;
   const copies=cardCopies(id);
-  const copy=copies[copyIndex]||copies.find(unit=>unit.serial);
+  const copy=copies[copyIndex]||collectionCopy(id);
   const serial=copy?.serial?'#'+copy.serial:'';
   const selected=draft.includes(id);
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'사본 변경':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
@@ -374,7 +383,7 @@ function showDetail(id, copyIndex){
   <div class="inspection"><div class="inspection-view"><div class="turntable" tabindex="0" role="group" aria-label="카드 회전. 방향키 또는 드래그로 돌리기" data-turntable>
   <div class="physical-card"><div class="physical-face physical-front">${cardHTML(c,{sub:serial,variant:copy?.variant})}</div>${cardBack(c,copy)}<div class="physical-edge"></div></div>
   </div><div class="turntable-controls"><span>마우스를 올려 회전 · 드래그로 뒤집기</span><button class="btn" id="flip-card">앞뒤 보기</button><button class="btn" id="reset-card">정면</button></div></div>
-  <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2>${copy?.variant?`<p class="edition-detail">${editionName(copy.variant)} · ${serial}</p>`:''}${valueMarkup(id,copy?.serial,true,copy?.variant)}<div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${deckAction}</div></div>`;
+  <div class="inspection-copy"><div class="eyebrow">${owned?'보유':tab==='collection'?'미보유 · 관리자 열람':'대전 카드'}</div><h2>${c.name}</h2>${copy?.variant?`<p class="edition-detail">${editionName(copy.variant)} · ${serial}</p>`:''}${valueMarkup(id,copy?.serial,true,copy?.variant)}<div class="inspect-stats"><div><small>일반 공격</small><strong>${c.atk}</strong></div><div><small>최대 체력</small><strong>${c.hp}</strong></div></div><div class="card-record"><b>사용 ${(local?.uses||0)+(ranked?.uses||0)}회</b><b>승리 ${(local?.wins||0)+(ranked?.wins||0)}회</b></div>${copies.length?`<h3>보유 ${copies.length}장 · 중복 ${Math.max(0,copies.length-1)}장</h3>`:''}${copies.length&&tab!=='copies'?`<button class="btn" data-open-copies="${id}">보유 카드 모두 보기 · ${copies.length}장</button>`:''}<h3>${c.skill}</h3><p>${desc(c)}</p>${owned&&tab==='collection'?`<button class="btn" data-collection-copy="${id}">사본 변경</button>`:''}${selected?'':deckAction}</div></div>`;
   const stage=detail.querySelector('[data-turntable]');
   const face=stage.querySelector('.card');
   face.removeAttribute('data-detail');face.tabIndex=-1;face.setAttribute('aria-hidden','true');
@@ -498,6 +507,28 @@ function equippedCopy(id,key){
   const copies=cardCopies(id);
   return copies.find(unit=>unit.id===key)||copies.find(unit=>unit.serial)||copies[0];
 }
+function collectionCopy(id){
+  const preferences=onlineProfile?.collectionCopies??profile.collectionCopies;
+  return equippedCopy(id,preferences?.[id]);
+}
+async function equipCollectionCopy(id,unit,returnTo,button){
+  if(onlineProfile){
+    button.disabled=true;
+    try{
+      const result=await onlineFetch('/collection/copy','POST',{card:id,copy:unit.id});
+      onlineProfile.collectionCopies=result.collectionCopies;
+    }catch(error){button.textContent=error.message;return;}
+    finally{button.disabled=false;}
+  }else{
+    const previous=profile.collectionCopies;
+    profile.collectionCopies={...previous,[id]:unit.id};
+    if(!save()){profile.collectionCopies=previous;button.textContent='저장 실패';return;}
+  }
+  if(draft.includes(id))draftCopies[id]=unit.id;
+  if(profile.deck.includes(id)){profile.deckCopies={...profile.deckCopies,[id]:unit.id};save();}
+  if(onlineProfile?.deck.includes(id))onlineProfile.deckCopies={...onlineProfile.deckCopies,[id]:unit.id};
+  if(tab==='copies'){tab=returnTo;render();}
+}
 function equipDeckCopy(id,key){
   if(!cardCopies(id).some(unit=>unit.id===key))return false;
   if(!draft.includes(id)){
@@ -529,7 +560,8 @@ function collectionGrid(){
   const renderCards=list=>list.map(c=>{
     const count=cardCopies(c.id).length;
     if(!count)return `<div class="deck-card-cell">${cardHTML(c,{sub:'미보유'})}</div>`;
-    return `<div class="deck-card-cell">${cardHTML(c,{extra:draft.includes(c.id)?'selected':'',sub:count+'장'})}<button class="btn deck-quick" data-deck="${c.id}" ${draft.length===6&&!draft.includes(c.id)&&replaceSlot===null?'disabled':''}>${draft.includes(c.id)?'사본 변경':replaceSlot!==null?'교체':'넣기'}</button>${draft.includes(c.id)?`<button class="btn deck-quick" data-remove-card="${c.id}">빼기</button>`:''}</div>`;
+    const copy=draft.includes(c.id)?equippedCopy(c.id,draftCopies[c.id]):collectionCopy(c.id);
+    return `<div class="deck-card-cell">${cardHTML(c,{idx:c.id,extra:draft.includes(c.id)?'selected':'',badge:count+'장',sub:copyLabel(copy),variant:copy?.variant})}<button class="btn deck-quick" data-collection-copy="${c.id}">사본 변경</button><button class="btn deck-quick" data-deck="${c.id}" ${draft.length===6&&!draft.includes(c.id)&&replaceSlot===null?'disabled':''}>${draft.includes(c.id)?'덱 사본 변경':replaceSlot!==null?'교체':'넣기'}</button>${draft.includes(c.id)?`<button class="btn deck-quick" data-remove-card="${c.id}">빼기</button>`:''}</div>`;
   }).join('')||'<p>해당하는 카드가 없어.</p>';
   const section=(title,list)=>`<section aria-label="${title}"><h2>${title} (${list.length})</h2><div class="grid">${renderCards(list)}</div></section>`;
   document.querySelector('#collection-grid').innerHTML=section('보유 카드',owned)+(canViewAllCards()?section('미보유 카드',missing):'');
@@ -556,8 +588,8 @@ function renderCopies(){
   const tiles=cardCopies(card.id).map((unit,i)=>{
     const serial=unit.serial?'#'+unit.serial:'기본 카드';
     const listed=marketItems.some(item=>item.id===unit.id);
-    const selection=copyMode==='featured'&&featuredId===card.id?featuredCopy:copyMode==='deck'?draftCopies[card.id]:null;
-    return `<article class="copy-tile">${cardHTML(card,{action:'copy-index',sub:serial,key:i,variant:unit.variant})}<small>${listed?'판매 중':selection===unit.id?'장착 중':'보유 중'}</small>${copyMode?`<button class="btn primary" data-equip-copy="${i}">${copyMode==='featured'?'대표 카드로 선택':'덱에 장착'}</button>`:''}</article>`;
+    const selection=copyMode==='featured'&&featuredId===card.id?featuredCopy:copyMode==='deck'?draftCopies[card.id]:copyMode==='collection'?collectionCopy(card.id)?.id:null;
+    return `<article class="copy-tile">${cardHTML(card,{action:'copy-index',sub:serial,key:i,variant:unit.variant})}<small>${listed?'판매 중':selection===unit.id?'장착 중':'보유 중'}</small>${copyMode?`<button class="btn primary" data-equip-copy="${i}" ${listed?'disabled':''}>${copyMode==='featured'?'대표 카드로 선택':copyMode==='collection'?'사본 장착':'덱에 장착'}</button>`:''}</article>`;
   });
   main.innerHTML=`<section class="sub-head"><button class="btn" id="copies-back">‹ 뒤로 가기</button><h1>${card.name}</h1><p>${copyMode?'장착할 사본을 골라줘. · ':''}보유 카드 ${tiles.length}장</p></section><div class="grid copy-gallery">${tiles.join('')||'<p>보유한 카드가 없어.</p>'}</div>`;
 }
@@ -823,6 +855,7 @@ document.addEventListener('click',e=>{
   if(b.id==='developer-tab'){void openDeveloperBuild(b);return;}
   const {tab:dest,go,detail:id,pick,lane,draw:count,deck}=b.dataset;
   if(dest||go){if(go==='featured')featureReturn=tab;if(match&&tab==='battle')return;if(b.dataset.panel)onlinePanel=b.dataset.panel;tab=dest||go;render();return;}
+  if(b.dataset.collectionCopy!==undefined){selectCopy(+b.dataset.collectionCopy,'collection');return;}
   if(b.dataset.openCopies!==undefined){selectCopy(+b.dataset.openCopies,null);return;}
   if(b.id==='copies-back'){tab=copyReturn;render();return;}
   if(b.dataset.copyIndex!==undefined){showDetail(copySubject,+b.dataset.copyIndex);return;}
@@ -835,6 +868,7 @@ document.addEventListener('click',e=>{
   if(b.dataset.equipCopy!==undefined){
     const unit=cardCopies(copySubject)[+b.dataset.equipCopy];
     if(!unit)return;
+    if(copyMode==='collection'){void equipCollectionCopy(copySubject,unit,copyReturn,b);return;}
     if(copyMode==='featured'){
       if(onlineProfile){void chooseProfileCard(copySubject,unit,copyReturn==='featured'?featureReturn:copyReturn);return;}
       featuredId=copySubject;featuredCopy=unit.id;
