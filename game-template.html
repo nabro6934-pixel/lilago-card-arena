@@ -262,6 +262,32 @@ header[hidden],#developer-tab[hidden]{display:none!important}
 .card:not(.unowned):after{z-index:3;animation:card-gloss 5s ease-in-out infinite;animation-delay:calc(var(--i,0) * -125ms)}
 @keyframes card-gloss{0%{transform:translateX(-110%)} 17%,100%{transform:translateX(110%)}}
 @media(prefers-reduced-motion:reduce){.card:not(.unowned):after{animation:none}}
+.unit[data-edition="sapphire"]{--edition-unit:#c88494}
+.unit[data-edition="cobalt"]{--edition-unit:#9199c5}
+.unit[data-edition="emerald"]{--edition-unit:#85b4a4}
+.unit[data-edition="gold"]{--edition-unit:#d4b482}
+.unit[data-edition="black"]{--edition-unit:#a6a3ad}
+.unit[data-edition]{border-color:var(--edition-unit);background:radial-gradient(ellipse at top,color-mix(in srgb,var(--edition-unit) 48%,#13212a),#13212a)}
+.unit{position:relative}
+.unit{position:relative}
+.unit .unit-serial{position:absolute;top:3px;right:4px;background:#152028e8;border-radius:3px;padding:1px 4px;color:#ffe09c;font-size:10px;text-shadow:0 0 5px #df9f57}
+@media(max-width:680px){
+ .deck-tray{position:relative;padding:9px}
+ .deck-tray .toolbar{flex-wrap:wrap}
+ .deck-tray #deckcount{flex:1 0 100%}
+ .deck-tray #deck-slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #collection-grid .grid,.copy-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .deck-card-cell .btn,.copy-tile .btn{min-height:44px;white-space:normal}
+ .deck-tray .btn,.lane-title,#commit{min-height:44px}
+ .arena-shell .hand{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .arena-shell .hand .card{aspect-ratio:.78}
+ .arena-shell .lane{min-width:0}
+ .home-fighter{grid-template-columns:minmax(0,1fr);text-align:center;padding:14px}
+ .home-art{max-width:190px;margin:auto}
+ .home-showcase{grid-template-columns:minmax(0,1fr)}
+ .home-showcase aside{display:flex;justify-content:center;gap:5px}
+ .home-tabs{grid-template-columns:repeat(auto-fit,minmax(85px,1fr))}
+}
 </style></head>
 <body><header><div><div class="brand">릴라고 <b>카드 아레나</b></div><div class="header-actions"><button class="btn audio-toggle" id="music-toggle" aria-pressed="false">♫ 음악 설정</button><div class="balance" id="coins"></div><div class="balance" id="ai-coins"></div><button class="btn audio-toggle" id="audio-toggle" aria-pressed="false">효과음</button></div></div><nav aria-label="게임 메뉴"><button data-tab="battle">⚔ 홈</button><button data-tab="collection">▤ 카드 · 덱</button><button data-tab="pack">◇ 뽑기</button><button data-tab="online" data-panel="rank">🏆 리더보드</button><button data-tab="online" data-panel="profile">◈ 프로필</button><button id="developer-tab" type="button" hidden>개발자 서버 ↗</button></nav></header>
 <div id="arena-loading" class="arena-loading"><div><span>◇</span><h1>릴라고 카드 아레나</h1><div class="load-track"><i></i></div><p>아레나 입장 중</p></div></div><dialog id="welcome"><div class="welcome-body"><h2>프로필 만들기</h2><form data-online-form="register"><label>닉네임 <input name="name" maxlength="20" required></label><label>프로필 테두리 <select name="frame"><option value="mint">민트</option><option value="violet">보라</option><option value="amber">골드</option></select></label><button class="btn primary">입장</button><p id="welcome-status" role="status"></p></form></div></dialog><main id="main"></main><dialog id="detail"></dialog><dialog id="music-settings"></dialog>
@@ -368,14 +394,14 @@ function bindMouseCardRotation(stage){
     if(suppressClick){event.preventDefault();event.stopPropagation();}
   },true);
 }
-function showDetail(id, copyIndex){
+function showDetail(id, copyIndex, battleCopy){
   if(retiredCards.has(id))return;
   const c=cards[id];
   const owned=ownsCard(id);
   const local=profile.stats?.[id], ranked=onlineProfile?.stats?.[id];
   if(!owned&&tab==='collection'&&!canViewAllCards())return;
   const copies=cardCopies(id);
-  const copy=copies[copyIndex]||collectionCopy(id);
+  const copy=battleCopy===undefined?copies[copyIndex]||collectionCopy(id):battleCopy;
   const serial=copy?.serial?'#'+copy.serial:'';
   const selected=draft.includes(id);
   const deckAction=tab==='collection'&&owned?`<button class="btn primary" data-deck="${id}" ${!selected&&draft.length===6&&replaceSlot===null?'disabled':''}>${selected?'사본 변경':replaceSlot!==null?'선택한 자리 교체':draft.length===6?'덱이 가득 참':'덱에 넣기'}</button>`:'';
@@ -547,7 +573,10 @@ function selectCopy(id,mode){
 function setDeckCard(id){
   const old=draft.indexOf(id);
   if(old>=0){draft.splice(old,1);delete draftCopies[id];replaceSlot=null;}
-  else if(ownsCard(id)&&replaceSlot!==null&&replaceSlot<draft.length){draft[replaceSlot]=id;replaceSlot=null;}
+  else if(ownsCard(id)&&replaceSlot!==null&&replaceSlot<draft.length){
+    delete draftCopies[draft[replaceSlot]];
+    draft[replaceSlot]=id;draftCopies[id]=collectionCopy(id)?.id;replaceSlot=null;
+  }
   else if(ownsCard(id)&&draft.length<6)draft.push(id);
   else return;
   collectionGrid();
@@ -555,7 +584,10 @@ function setDeckCard(id){
 function canViewAllCards(){return onlineProfile?.canViewAllCards===true;}
 function collectionGrid(){
   const matching=cards.filter(c=>!retiredCards.has(c.id)&&c.name.toLowerCase().includes(query.toLowerCase()));
-  const owned=matching.filter(c=>ownsCard(c.id));
+  const owned=matching.filter(c=>ownsCard(c.id)).sort((a,b)=>{
+    const order=id=>draft.includes(id)?draft.indexOf(id):draft.length;
+    return order(a.id)-order(b.id);
+  });
   const missing=canViewAllCards()?matching.filter(c=>!ownsCard(c.id)):[];
   const renderCards=list=>list.map(c=>{
     const count=cardCopies(c.id).length;
@@ -579,7 +611,7 @@ function deckSlotHTML(i){
   return `<div class="deck-card-view" data-pc-card><div class="deck-card-rotor">${cardHTML(card,{action:'slot',key:i,pressed:i===replaceSlot,sub:copyLabel(copy),variant:copy?.variant})}${cardBack(card,copy)}</div></div>`;
 }
 function renderCollection(){
-  main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">저장</button></div><div id="deck-slots"></div><div id="deck-message" role="status"></div><p>덱에서 교체할 자리를 누른 뒤, 보유 카드의 교체 버튼을 눌러.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div id="collection-grid"></div>';
+  main.innerHTML='<h1>카드 · 덱</h1><div class="deck-tray"><div class="toolbar"><span id="deckcount"></span><button class="btn" id="deck-clear">새로 짜기</button><button class="btn" id="deck-reset">되돌리기</button><button class="btn primary" id="save-deck">저장</button></div><div id="deck-slots"></div><div id="deck-message" role="status"></div><p>덱 카드 하나를 누르고 아래에서 교체할 보유 카드를 눌러. 저장을 누르면 대전에 적용돼.</p></div><div class="toolbar"><input type="search" id="query" aria-label="카드 이름 검색" placeholder="카드 이름 검색"></div><div id="collection-grid"></div>';
   document.querySelector('#query').value=query;collectionGrid();
 }
 let copySubject=null, copyReturn='collection', copyMode=null;
@@ -618,12 +650,15 @@ function returnAfterMatch(state){
 function start(){
   const enemyDeck=shuffle(cards.filter(c=>!retiredCards.has(c.id)).map(c=>c.id)).slice(0,6);
   match={turn:1,teams:[[],[]],deadline:Date.now()+20000,hands:[[...new Set([...profile.deck.filter(ownsCard),...starter])].slice(0,6),enemyDeck],selected:null,lane:null,history:[],busy:false,outcome:null};
+  match.copies=[Object.fromEntries(match.hands[0].map(id=>[id,equippedCopy(id,profile.deckCopies?.[id]??profile.collectionCopies?.[id])])),{}];
   announceBattle(match,'대전 시작 · 1턴');
 }
 const line=(side,lane)=>match.teams[side].filter(u=>u.lane===lane&&u.hp>0);
 const front=(side,lane)=>line(side,lane)[0];
 const score=(side,lane)=>line(side,lane).reduce((sum,u)=>sum+u.hp,0);
-function unitHTML(u){return `<button type="button" class="unit ${match.fresh?.includes(u)?'fresh-unit':''}" style="--hp:${Math.round(u.hp/u.c.hp*100)}%;--foil:${u.c.color}" data-detail="${u.c.id}" aria-label="${u.c.name}, 체력 ${u.hp}, 보호막 ${u.shield}" title="${u.c.name}"><img src="${u.c.art}" alt=""><span>${u.hp}${u.shield?' +'+u.shield:''}</span></button>`;}
+function unitHTML(u){
+  const copy=match.copies?.[u.side]?.[u.c.id];
+  return `<button type="button" class="unit ${match.fresh?.includes(u)?'fresh-unit':''}" style="--hp:${Math.round(u.hp/u.c.hp*100)}%;--foil:${u.c.color}" ${copy?.variant?`data-edition="${copy.variant}"`:''} data-battle-card="${u.c.id}" data-battle-side="${u.side}" aria-label="${u.c.name}, 체력 ${u.hp}, 보호막 ${u.shield}" title="${u.c.name}"><img src="${u.c.art}" alt=""><span>${u.hp}${u.shield?' +'+u.shield:''}</span>${copyLabel(copy)?`<b class="unit-serial">${copyLabel(copy)}</b>`:''}</button>`;}
 let homeMode='ai';
 function renderBattle(){
   if(!match){
@@ -644,9 +679,12 @@ function renderBattle(){
     const a=score(0,i),b=score(1,i);
     return `<section class="lane ${lane===i?'chosen':''} ${a>b?'adv':a<b?'behind':''} ${match.phase==='impact'&&match.changes?.[i].length?'strike':''}"><button class="lane-title ${selected!==null&&!busy&&!outcome?'lane-ready':''}" data-lane="${i}" aria-pressed="${lane===i}" ${busy||outcome?'disabled':''}>${name}</button><div class="units enemy">${(match.phase==='impact'?match.snapshot[1][i]:line(1,i)).map(unitHTML).join('')||'<span class="empty">—</span>'}</div><div class="lane-score">내 ${a} · 상대 ${b}</div>${match.phase==='impact'&&match.changes[i].length?`<div class="impact-fx"><i></i>${match.changes[i].map(({label,side},j)=>`<b class="change-${side}" style="--j:${j}">${label}</b>`).join('')}</div>`: ''}<div class="units ally">${(match.phase==='impact'?match.snapshot[0][i]:line(0,i)).map(unitHTML).join('')||'<span class="empty">—</span>'}</div></section>`;
   }).join('');
-  const hand=match.hands[0].map(id=>cardHTML(cards[id],{action:'pick',pressed:selected===id,disabled:busy||!!outcome})).join('');
+  const hand=match.hands[0].map(id=>{
+    const copy=match.copies?.[0]?.[id];
+    return cardHTML(cards[id],{action:'pick',pressed:selected===id,disabled:busy||!!outcome,sub:copyLabel(copy),variant:copy?.variant});
+  }).join('');
   const result=outcome&&(match.online&&!match.ai?({win:'온라인 승리 · +10 트로피 · +120 코인',loss:'온라인 패배',draw:'온라인 무승부'})[outcome]:({win:'승리 · +120 코인',loss:'패배 · +40 코인',draw:'무승부 · +60 코인'})[outcome]);
-  main.innerHTML=`<section class="arena-shell ${match.phase||''}"><div class="arena-head"><div><div class="eyebrow">${match.online&&!match.ai?'온라인 1대1':'연습 대전'}</div><h1>세 구역 쟁탈전</h1></div><div class="round-meter" aria-label="${turn} / 5 턴">${zones.concat(['','']).map((_,i)=>`<i class="${i+1===turn?'now':i+1<turn?'past':''}">${i+1}</i>`).join('')}</div></div><div class="toolbar"><strong>${turn} / 5 턴</strong>${match.deadline&&!outcome?`<span class="turn-clock" data-turn-clock>${Math.max(0,Math.ceil((match.deadline-Date.now())/1000))}초</span>`:''}</div><div class="battle-versus"><span>내 전열</span><b>${match.phase==='deployment'?'카드 공개':match.phase==='impact'?'전투 처리':match.phase==='skill'?'고유 능력':match.busy?'상대 대기':'배치 단계'}</b><span>${match.online?escapeHTML(match.opponent):'연습 상대'}</span></div><div class="lanes">${board}</div>${skillBanner()}${match.announcement?`<div class="battle-announcement" role="status">${match.announcement}</div>`:''}${result?`<div class="arena-result result-${outcome}" role="status"><strong>${result}</strong></div>`:''}<div class="toolbar"><button class="btn primary" id="${outcome?(match.online&&!match.ai?'online-again':'start'):'commit'}" ${!outcome&&(busy||selected===null||lane===null)?'disabled':''}>${outcome?'다시 대전':'배치 확정'}</button>${selected!==null&&!outcome?`<button class="btn" data-detail="${selected}">고유 능력 보기</button>`:''}<span class="status" role="status">${result?'':(busy?(match.phase==='impact'?'공격 및 능력 적용':match.phase==='skill'?'고유 능력 발동':match.online&&!match.phase?'상대가 배치를 확정할 때까지 대기 중':'양쪽 카드 공개'):selected===null?'배치할 카드를 골라줘.':lane===null?'배치할 구역을 골라줘.':'배치할 준비가 됐어.')}</span></div><div class="hand">${hand}</div><details class="rules"><summary>전투 규칙</summary>매 턴 양쪽이 카드 1장을 동시에 배치해. 카드들은 같은 구역의 맨 앞 적을 공격하고, 일반 공격 피해는 동시에 적용돼. 다섯 번째 턴이 끝나면 구역별 생존 카드 체력 합이 높은 쪽이 그 구역을 차지해. 동점인 구역은 중립이고, 두 구역을 차지한 쪽이 없으면 무승부야.</details><div class="log" aria-label="전투 기록">${history.slice(0,18).map(s=>`<div>${s}</div>`).join('')||'이번 전투의 배치와 능력 발동 기록이 여기 표시돼.'}</div></section>`;
+  main.innerHTML=`<section class="arena-shell ${match.phase||''}"><div class="arena-head"><div><div class="eyebrow">${match.online&&!match.ai?'온라인 1대1':'연습 대전'}</div><h1>세 구역 쟁탈전</h1></div><div class="round-meter" aria-label="${turn} / 5 턴">${zones.concat(['','']).map((_,i)=>`<i class="${i+1===turn?'now':i+1<turn?'past':''}">${i+1}</i>`).join('')}</div></div><div class="toolbar"><strong>${turn} / 5 턴</strong>${match.deadline&&!outcome?`<span class="turn-clock" data-turn-clock>${Math.max(0,Math.ceil((match.deadline-Date.now())/1000))}초</span>`:''}</div><div class="battle-versus"><span>내 전열</span><b>${match.phase==='deployment'?'카드 공개':match.phase==='impact'?'전투 처리':match.phase==='skill'?'고유 능력':match.busy?'상대 대기':'배치 단계'}</b><span>${match.online?escapeHTML(match.opponent):'연습 상대'}</span></div><div class="lanes">${board}</div>${skillBanner()}${match.announcement?`<div class="battle-announcement" role="status">${match.announcement}</div>`:''}${result?`<div class="arena-result result-${outcome}" role="status"><strong>${result}</strong></div>`:''}<div class="toolbar"><button class="btn primary" id="${outcome?(match.online&&!match.ai?'online-again':'start'):'commit'}" ${!outcome&&(busy||selected===null||lane===null)?'disabled':''}>${outcome?'다시 대전':'배치 확정'}</button>${selected!==null&&!outcome?`<button class="btn" data-battle-card="${selected}" data-battle-side="0">고유 능력 보기</button>`:''}<span class="status" role="status">${result?'':(busy?(match.phase==='impact'?'공격 및 능력 적용':match.phase==='skill'?'고유 능력 발동':match.online&&!match.phase?'상대가 배치를 확정할 때까지 대기 중':'양쪽 카드 공개'):selected===null?'배치할 카드를 골라줘.':lane===null?'배치할 구역을 골라줘.':'배치할 준비가 됐어.')}</span></div><div class="hand">${hand}</div><details class="rules"><summary>전투 규칙</summary>매 턴 양쪽이 카드 1장을 동시에 배치해. 카드들은 같은 구역의 맨 앞 적을 공격하고, 일반 공격 피해는 동시에 적용돼. 다섯 번째 턴이 끝나면 구역별 생존 카드 체력 합이 높은 쪽이 그 구역을 차지해. 동점인 구역은 중립이고, 두 구역을 차지한 쪽이 없으면 무승부야.</details><div class="log" aria-label="전투 기록">${history.slice(0,18).map(s=>`<div>${s}</div>`).join('')||'이번 전투의 배치와 능력 발동 기록이 여기 표시돼.'}</div></section>`;
 }
 function skillBanner(){
   const cast=match.cast;
@@ -883,7 +921,14 @@ document.addEventListener('click',e=>{
     if(result)showDetail(result.id,cardCopies(result.id).findIndex(u=>u.serial===result.serial&&(u.variant||null)===(result.variant||null)));
     return;
   }
-  if(id!==undefined){showDetail(+id);return;}
+  if(b.dataset.battleCard!==undefined){const id=+b.dataset.battleCard;showDetail(id,undefined,match?.copies?.[+b.dataset.battleSide]?.[id]??null);return;}
+  if(id!==undefined){
+    const card=+id;
+    if(tab==='collection'&&replaceSlot!==null&&ownsCard(card)&&!draft.includes(card)){
+      setDeckCard(card);
+    }else showDetail(card);
+    return;
+  }
   if(count||b.dataset.aiDraw){draw(+(count||b.dataset.aiDraw),!!b.dataset.aiDraw);return;}
   if(pick!==undefined&&match&&!match.busy&&!match.outcome){match.selected=+pick;render();return;}
   if(lane!==undefined&&match&&!match.busy&&!match.outcome){match.lane=+lane;render();return;}
@@ -1064,7 +1109,7 @@ function loadOnlineMatch(room){
   const teams=reorient(room.teams).map((team,side)=>team.map(u=>({...u,side,c:cards[u.c.id]})));
   const outcome=room.winner===null?null:room.winner===-1?'draw':room.winner===room.side?'win':'loss';
   const state={
-    online:true,ai:room.ai,roomId:room.id,opponent:room.opponent.name,teams,hands:[room.hands,[]],turn:room.turn,deadline:outcome?null:(!played&&previous?previous.deadline:Math.min(room.deadline,Date.now()+20000)),
+    copies:reorient(room.copies??[{},{}]),online:true,ai:room.ai,roomId:room.id,opponent:room.opponent.name,teams,hands:[room.hands,[]],turn:room.turn,deadline:outcome?null:(!played&&previous?previous.deadline:Math.min(room.deadline,Date.now()+20000)),
     selected:played?null:(previous?.selected??null),lane:played?null:(previous?.lane??null),busy:room.submitted,outcome,
     history:previous?.history||[],lastTurn:room.last?.turn??0
   };
@@ -1314,23 +1359,38 @@ try{
   if(Number.isInteger(settings.track)&&lobbyTracks[settings.track])trackIndex=settings.track;
   if(Number.isFinite(settings.volume))musicVolume=Math.max(0,Math.min(1,settings.volume));
 }catch{}
+const failedLobbyTracks=new Set();
+function skipFailedLobbyTrack(){
+  if(!musicOn||match)return;
+  failedLobbyTracks.add(trackIndex);
+  for(let step=1;step<lobbyTracks.length;step++){
+    const next=(trackIndex+step)%lobbyTracks.length;
+    if(!failedLobbyTracks.has(next)){chooseTrack(next,false);return;}
+  }
+}
 function updateLobbyMusic(){
   if(typeof Audio==='undefined'||!lobbyTracks.length)return;
   if(!lobbyMusic&&musicOn){
     lobbyMusic=new Audio(lobbyTracks[trackIndex].url);
     lobbyMusic.volume=musicVolume;
     lobbyMusic.addEventListener('ended',()=>{chooseTrack(trackIndex+1);const panel=document.querySelector('#music-settings');if(panel.open)showMusicSettings();});
+    lobbyMusic.addEventListener('playing',()=>failedLobbyTracks.clear());
+    lobbyMusic.addEventListener('error',skipFailedLobbyTrack);
   }
   if(!lobbyMusic)return;
-  if(musicOn&&!match&&lobbyMusic.paused)void lobbyMusic.play().catch(()=>{});
-  else if(!musicOn||match)lobbyMusic.pause();
+  if(!musicOn||match){lobbyMusic.pause();return;}
+  if(lobbyMusic.error&&!failedLobbyTracks.has(trackIndex))skipFailedLobbyTrack();
+  if(lobbyMusic.paused)void lobbyMusic.play().catch(error=>{
+    if(error.name==='NotSupportedError'&&lobbyMusic.error&&!failedLobbyTracks.has(trackIndex))skipFailedLobbyTrack();
+  });
 }
 function storeMusic(){try{localStorage.setItem('lilago-music-settings',JSON.stringify({on:musicOn,track:trackIndex,volume:musicVolume}));}catch{}}
 function trackTitle(i){
   return lobbyTracks[i].title;
 }
-function chooseTrack(index){
+function chooseTrack(index,resetFailures=true){
   if(!lobbyTracks.length)return;
+  if(resetFailures)failedLobbyTracks.clear();
   trackIndex=(index+lobbyTracks.length)%lobbyTracks.length;
   if(lobbyMusic)lobbyMusic.src=lobbyTracks[trackIndex].url;
   storeMusic();updateLobbyMusic();
@@ -1363,6 +1423,9 @@ if(typeof window!=='undefined'){
   document.querySelector('#music-toggle').setAttribute('aria-pressed',String(musicOn));
   document.addEventListener('pointerdown',updateLobbyMusic);
   document.addEventListener('keydown',updateLobbyMusic);
+  document.addEventListener('click',updateLobbyMusic);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateLobbyMusic();});
+  window.addEventListener('online',()=>{if(lobbyMusic?.error)chooseTrack(trackIndex);else updateLobbyMusic();});
   bootArena();
   setInterval(()=>{if(!document.hidden)refreshCardValues();},5000);
 }
