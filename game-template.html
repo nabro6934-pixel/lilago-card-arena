@@ -287,7 +287,7 @@ const retiredCards=new Set([163,166]);
 const cardEditions={sapphire:'루비',cobalt:'코발트',emerald:'에메랄드',gold:'골드',black:'블랙'};
 const editionName=variant=>cardEditions[variant]||'기본';
 function cardHTML(c,{variant=null,action='detail',sub='',extra='',pressed=null,disabled=false,idx=0,key=c.id}={}){
-  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt=""></span><span class="cardbody">${sub&&!sub.startsWith('#')?`<span class="meta">${sub}</span>`:''}${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}<span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
+  return `<button type="button" class="card ${extra}"${cardEditions[variant]?` data-edition="${variant}"`: ''} style="--foil:${c.color};--i:${idx}" data-${action}="${key}" ${pressed===null?'':`aria-pressed="${pressed}"`} ${disabled?'disabled':''} aria-label="${c.name}"><span class="art-field"><img class="portrait" src="${c.art}" alt="" draggable="false"></span><span class="cardbody">${sub&&!sub.startsWith('#')?`<span class="meta">${sub}</span>`:''}${sub.startsWith('#')?`<span class="front-serial">${sub}</span>`:''}<span class="name" title="${c.name}"><span class="name-text">${c.name}</span></span><span class="stats">공격 ${c.atk} · 체력 ${c.hp}</span><span class="skill">${c.skill}</span></span></button>`;
 }
 function valueMarkup(id,serial,showSupply=false,variant=null){
   return `<span class="card-value" data-card-value="${id}" data-value-serial="${serial||''}" data-value-variant="${variant||''}"${showSupply?' data-value-supply':''}><small>추정 시장가</small><strong>확인 중…</strong>${showSupply?'<small data-supply-label></small>':''}</span>`;
@@ -327,7 +327,7 @@ function bindMouseCardRotation(stage){
   const rotor=stage.firstElementChild;
   let drag=null,suppressClick=false;
   stage.addEventListener('pointerdown',event=>{
-    if(!mouseCardRotation.matches||event.pointerType!=='mouse'||event.button!==0||drag)return;
+    if(!mouseCardRotation.matches||event.pointerType!=='mouse'||event.button!==0||drag||!rotor.contains(event.target))return;
     const transform=getComputedStyle(rotor).transform;
     drag={id:event.pointerId,startX:event.clientX,startY:event.clientY,transform,moved:false};
     rotor.style.transform=transform;
